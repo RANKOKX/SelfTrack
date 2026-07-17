@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SelfTrack - Photo à 5 moments</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23667eea' width='192' height='192'/><text x='96' y='128' font-size='80' fill='white' text-anchor='middle' font-weight='bold'>S</text></svg>">
+    <meta name="theme-color" content="#667eea">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ÉCRAN LOGIN -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-container">
+            <div class="logo">📸</div>
+            <h1>SelfTrack</h1>
+            <p>Photo à 5 moments aléatoires dans la journée</p>
+            <button id="googleLoginBtn" class="btn-primary">
+                <span>Se connecter avec Google</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ÉCRAN PRINCIPAL -->
+    <div id="mainScreen" class="screen">
+        <div class="header">
+            <div class="user-info">
+                <img id="userPhoto" class="user-avatar" src="" alt="">
+                <div>
+                    <p id="userName" class="user-name"></p>
+                    <p id="currentDate" class="user-date"></p>
+                </div>
+            </div>
+            <button id="logoutBtn" class="btn-logout">Déconnexion</button>
+        </div>
+
+        <!-- STATUS -->
+        <div id="statusBox" class="status-box">
+            <div class="status-content">
+                <p id="statusText" class="status-text">En attente du premier rappel...</p>
+                <p id="nextReminderText" class="next-reminder"></p>
+            </div>
+        </div>
+
+        <!-- PHOTOS PRISES -->
+        <div class="photos-section">
+            <h2>Vos photos aujourd'hui</h2>
+            <div id="photosGrid" class="photos-grid">
+                <p class="empty-message">Aucune photo pour le moment</p>
+            </div>
+        </div>
+
+        <!-- BOUTON CAMERA (caché sauf si notification) -->
+        <button id="cameraBtn" class="btn-camera" style="display:none;">
+            📷 Prendre une photo
+        </button>
+
+        <!-- RÉVÉLATION 20H -->
+        <div id="revealBox" class="reveal-box" style="display:none;">
+            <h2>✨ Révélation à 20h ✨</h2>
+            <p>Regardez les photos de tout le monde!</p>
+            <div id="revealedPhotos" class="revealed-photos"></div>
+        </div>
+    </div>
+
+    <!-- INPUT CAMERA (caché) -->
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
+
+    <!-- SCRIPTS FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js"></script>
+
+    <!-- APP JS -->
+    <script src="app.js"></script>
+</body>
+</html>
