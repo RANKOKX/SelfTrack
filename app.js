@@ -521,23 +521,54 @@ storySwapBtn.addEventListener("click", () => {
 
 // ====== SYSTEM D'AMIS PAR EMAIL ======
 searchFriendBtn.addEventListener("click", async () => {
-    const email = friendEmailInput.value.trim().toLowerCase();
-    if (!email) {
-        alert("Tape une adresse email!");
+    const displayName = friendEmailInput.value.trim().toLowerCase();
+    if (!displayName) {
+        alert("Tape le nom de ton ami!");
         return;
     }
     
     try {
         const usersSnapshot = await db.collection("users")
-            .where("email", "==", email)
-            .get();
+            .get(); // Récupère TOUS les users
         
         searchResultBox.innerHTML = "";
         
-        if (usersSnapshot.empty) {
+        // Cherche le matching par nom (flexible)
+        const matches = usersSnapshot.docs.filter(doc => 
+            doc.data().displayName.toLowerCase().includes(displayName)
+        );
+        
+        if (matches.length === 0) {
             searchResultBox.innerHTML = '<p class="empty-message">Utilisateur non trouvé</p>';
             return;
         }
+        
+        // Affiche tous les résultats
+        matches.forEach(userDoc => {
+            const user = userDoc.data();
+            const userId = userDoc.id;
+            
+            if (userId === currentUser.uid) return; // Skip toi-même
+            
+            const resultDiv = document.createElement("div");
+            resultDiv.className = "search-result";
+            resultDiv.innerHTML = `
+                <img src="${user.photoURL || 'data:image/svg+xml'}" alt="${user.displayName}" class="result-avatar">
+                <div class="result-info">
+                    <p class="result-name">${user.displayName}</p>
+                    <p class="result-email">${user.email}</p>
+                </div>
+                <button class="btn-invite" onclick="sendFriendRequest('${userId}', '${user.displayName}')">✓ Inviter</button>
+            `;
+            
+            searchResultBox.appendChild(resultDiv);
+        });
+        
+    } catch (error) {
+        console.error("Error searching:", error);
+        searchResultBox.innerHTML = '<p class="empty-message">Erreur</p>';
+    }
+});
         
         const userDoc = usersSnapshot.docs[0];
         const user = userDoc.data();
