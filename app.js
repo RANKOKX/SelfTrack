@@ -521,35 +521,50 @@ storySwapBtn.addEventListener("click", () => {
 
 // ====== SYSTEM D'AMIS PAR EMAIL ======
 searchFriendBtn.addEventListener("click", async () => {
-    const email = friendEmailInput.value.trim();
-    if (!email) return;
+    const email = friendEmailInput.value.trim().toLowerCase();
+    if (!email) {
+        alert("Tape une adresse email!");
+        return;
+    }
     
     try {
         const usersSnapshot = await db.collection("users")
             .where("email", "==", email)
             .get();
         
+        searchResultBox.innerHTML = "";
+        
         if (usersSnapshot.empty) {
             searchResultBox.innerHTML = '<p class="empty-message">Utilisateur non trouvé</p>';
             return;
         }
         
-        const user = usersSnapshot.docs[0].data();
-        const userId = usersSnapshot.docs[0].id;
+        const userDoc = usersSnapshot.docs[0];
+        const user = userDoc.data();
+        const userId = userDoc.id;
         
-        searchResultBox.innerHTML = `
-            <div class="search-result">
-                <img src="${user.photoURL}" alt="${user.displayName}" class="result-avatar">
-                <div class="result-info">
-                    <p class="result-name">${user.displayName}</p>
-                    <p class="result-email">${user.email}</p>
-                </div>
-                <button class="btn-invite" onclick="sendFriendRequest('${userId}', '${user.displayName}')">Inviter</button>
+        if (userId === currentUser.uid) {
+            searchResultBox.innerHTML = '<p class="empty-message">C\'est toi!</p>';
+            return;
+        }
+        
+        // Créer le div de résultat
+        const resultDiv = document.createElement("div");
+        resultDiv.className = "search-result";
+        resultDiv.innerHTML = `
+            <img src="${user.photoURL || 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 48 48%27%3E%3Ccircle cx=%2724%27 cy=%2724%27 r=%2724%27 fill=%27%23999%27/%3E%3C/svg%3E'}" alt="${user.displayName}" class="result-avatar">
+            <div class="result-info">
+                <p class="result-name">${user.displayName || "Sans nom"}</p>
+                <p class="result-email">${user.email}</p>
             </div>
+            <button class="btn-invite" onclick="sendFriendRequest('${userId}', '${user.displayName}')">✓ Inviter</button>
         `;
+        
+        searchResultBox.appendChild(resultDiv);
         
     } catch (error) {
         console.error("Error searching:", error);
+        searchResultBox.innerHTML = '<p class="empty-message">Erreur lors de la recherche</p>';
     }
 });
 
@@ -566,14 +581,6 @@ async function sendFriendRequest(friendId, friendName) {
                 createdAt: new Date(),
                 status: "pending"
             });
-        
-        // NOTIFICATION
-        if ("Notification" in window && Notification.permission === "granted") {
-            new Notification("SelfTrack 👥", {
-                body: `${currentUser.displayName} t'a invité!`,
-                icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%23000' width='192' height='192'/%3E%3Ctext x='96' y='128' font-size='80' fill='white' text-anchor='middle' font-weight='bold'%3ES%3C/text%3E%3C/svg%3E"
-            });
-        }
         
         alert(`Invitation envoyée à ${friendName}!`);
         friendEmailInput.value = "";
