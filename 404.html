@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+        var pathParts = window.location.pathname.split('/');
+        var lastPart = pathParts[pathParts.length - 1];
+        if (lastPart !== '' && !lastPart.includes('.')) {
+            window.location.replace('/SelfTrack/');
+        }
+    </script>
+</head>
+<body>
+    Redirecting...
+</body>
+</html>
