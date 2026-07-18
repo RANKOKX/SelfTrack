@@ -2,22 +2,32 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
-:root {
-    --primary: #000;
-    --text-dark: #1a1a1a;
-    --text-gray: #666;
-    --bg-white: #ffffff;
-    --bg-light: #f5f5f5;
-    --border: #e5e5e5;
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+}
+
+html {
+    font-size: 16px;
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-    background: var(--bg-white);
-    color: var(--text-dark);
-    min-height: 100vh;
+    background: #ffffff;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overflow-y: auto;
+}
+
+input, textarea, select {
+    -webkit-user-select: text;
+    user-select: text;
 }
 
 /* ====== SCREENS ====== */
@@ -29,12 +39,6 @@ body {
 
 .screen.active {
     display: block;
-    animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
 }
 
 /* ====== LOGIN ====== */
@@ -56,47 +60,49 @@ body {
 .login-container h1 {
     font-size: 32px;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+    color: #000;
 }
 
 .login-container p {
-    color: var(--text-gray);
+    color: #666;
     margin-bottom: 40px;
     font-size: 15px;
+    line-height: 1.5;
 }
 
 /* ====== BUTTONS ====== */
 .btn-primary {
-    background: var(--text-dark);
-    color: white;
+    background: #000;
+    color: #fff;
     border: none;
     padding: 14px 30px;
     border-radius: 10px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: background 0.2s;
     width: 100%;
     max-width: 400px;
 }
 
-.btn-primary:hover {
+.btn-primary:active {
     background: #333;
 }
 
 .btn-logout {
     background: transparent;
-    color: var(--text-dark);
-    border: 1px solid var(--border);
+    color: #000;
+    border: 1px solid #e5e5e5;
     padding: 8px 16px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 12px;
-    transition: 0.2s;
+    font-weight: 500;
 }
 
-.btn-logout:hover {
-    background: var(--bg-light);
+.btn-logout:active {
+    background: #f5f5f5;
 }
 
 .btn-camera {
@@ -106,58 +112,81 @@ body {
     width: 70px;
     height: 70px;
     border-radius: 50%;
-    background: var(--text-dark);
+    background: #000;
     color: white;
     border: none;
     font-size: 32px;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 1000;
-    transition: all 0.3s;
+    transition: background 0.2s;
 }
 
-.btn-camera:hover {
+.btn-camera:active {
     background: #333;
-    transform: scale(1.08);
 }
 
-.btn-accept, .btn-refuse, .btn-remove {
+.btn-accept {
+    background: #48bb78;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-accept:active {
+    background: #38a169;
+}
+
+.btn-refuse {
+    background: #f56565;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-refuse:active {
+    background: #e53e3e;
+}
+
+.btn-remove {
     background: transparent;
-    border: 1px solid var(--border);
+    border: 1px solid #e5e5e5;
+    color: #000;
     width: 36px;
     height: 36px;
     border-radius: 50%;
     cursor: pointer;
     font-size: 16px;
-    transition: 0.2s;
 }
 
-.btn-accept:hover {
-    background: #48bb78;
-    color: white;
-    border-color: #48bb78;
-}
-
-.btn-refuse:hover {
-    background: #f56565;
-    color: white;
-    border-color: #f56565;
-}
-
-.btn-remove:hover {
-    background: var(--bg-white);
-    border-color: var(--text-dark);
+.btn-remove:active {
+    background: #f5f5f5;
 }
 
 .btn-invite {
-    background: var(--text-dark);
+    background: #48bb78;
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: 10px 16px;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-invite:active {
+    background: #38a169;
 }
 
 /* ====== MAIN SCREEN ====== */
@@ -170,54 +199,35 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e5e5;
+    background: #fff;
 }
 
 .user-info {
     display: flex;
-    gap: 15px;
+    gap: 12px;
     align-items: center;
 }
 
 .user-avatar {
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    border: 1px solid var(--border);
+    border: 1px solid #e5e5e5;
 }
 
 .user-name {
     font-weight: 600;
-    font-size: 16px;
-    margin-bottom: 5px;
+    font-size: 15px;
+    color: #000;
 }
 
 .user-date {
-    font-size: 13px;
-    color: var(--text-gray);
-}
-
-/* ====== STATUS BOX ====== */
-.status-box {
-    background: var(--bg-light);
-    padding: 20px;
-    margin: 20px;
-    border-radius: 12px;
-    text-align: center;
-    border: 1px solid var(--border);
-}
-
-.status-text {
-    font-size: 17px;
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-.next-reminder {
-    font-size: 14px;
-    color: var(--text-gray);
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
 }
 
 /* ====== TABS ====== */
@@ -227,27 +237,45 @@ body {
 
 .tab.active {
     display: block;
-    animation: fadeIn 0.3s;
 }
 
-.tab-content {
-    padding: 20px;
+/* ====== HOME TAB ====== */
+.status-box {
+    background: #f5f5f5;
+    padding: 16px;
+    margin: 16px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #e5e5e5;
 }
 
-/* ====== PHOTOS ====== */
+.status-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 8px;
+}
+
+.next-reminder {
+    font-size: 13px;
+    color: #666;
+}
+
 .photos-section {
-    padding: 20px;
+    padding: 16px;
 }
 
 .photos-section h2 {
-    font-size: 18px;
-    margin-bottom: 15px;
+    font-size: 17px;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 12px;
 }
 
 .photos-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
 }
 
 .photo-item {
@@ -255,7 +283,8 @@ body {
     border-radius: 10px;
     overflow: hidden;
     aspect-ratio: 1;
-    border: 1px solid var(--border);
+    border: 1px solid #e5e5e5;
+    background: #f5f5f5;
 }
 
 .photo-item img {
@@ -269,41 +298,42 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.8);
     color: white;
-    padding: 6px;
-    font-size: 11px;
+    padding: 5px;
+    font-size: 10px;
     text-align: center;
+    font-weight: 500;
 }
 
 .empty-message {
     text-align: center;
-    color: var(--text-gray);
+    color: #666;
     padding: 40px 20px;
-    font-size: 14px;
+    font-size: 13px;
 }
 
-/* ====== STORIES ====== */
+/* ====== STORIES TAB ====== */
 .stories-container {
-    padding: 20px;
+    padding: 16px;
 }
 
 .story-header {
     display: flex;
-    gap: 15px;
+    gap: 12px;
     align-items: center;
-    margin-bottom: 20px;
-    padding: 15px;
-    background: var(--bg-light);
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #f5f5f5;
     border-radius: 12px;
 }
 
 .story-avatar {
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--text-dark);
+    border: 2px solid #000;
 }
 
 .story-user-info {
@@ -312,23 +342,25 @@ body {
 
 .story-name {
     font-weight: 600;
-    font-size: 16px;
-    margin-bottom: 5px;
+    font-size: 14px;
+    color: #000;
 }
 
 .story-counter {
-    font-size: 13px;
-    color: var(--text-gray);
+    font-size: 12px;
+    color: #666;
+    margin-top: 3px;
 }
 
 .story-image-container {
     position: relative;
     width: 100%;
     aspect-ratio: 9/16;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid var(--border);
+    border: 1px solid #e5e5e5;
+    background: #f5f5f5;
 }
 
 .story-image {
@@ -342,103 +374,117 @@ body {
     position: absolute;
     top: 10px;
     right: 10px;
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     border: none;
     font-size: 24px;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    transition: 0.2s;
+    transition: background 0.2s;
 }
 
-.story-swap-btn:hover {
+.story-swap-btn:active {
     background: white;
-    transform: scale(1.08);
 }
 
 .story-navigation {
     display: flex;
-    justify-content: space-between;
     gap: 10px;
 }
 
 .story-nav-btn {
     flex: 1;
     padding: 12px;
-    background: var(--bg-light);
-    border: 1px solid var(--border);
+    background: #f5f5f5;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
-    transition: 0.2s;
+    font-size: 14px;
+    color: #000;
+    transition: background 0.2s;
 }
 
-.story-nav-btn:hover {
-    background: var(--text-dark);
+.story-nav-btn:active {
+    background: #000;
     color: white;
 }
 
 .reveal-box {
-    padding: 20px;
-    background: var(--bg-light);
+    padding: 16px;
+    background: #f5f5f5;
     border-radius: 12px;
+    border: 1px solid #e5e5e5;
     text-align: center;
+    margin: 16px;
 }
 
 .reveal-box h2 {
-    margin-bottom: 10px;
+    font-size: 16px;
+    color: #000;
+    margin-bottom: 8px;
 }
 
 .reveal-box p {
-    color: var(--text-gray);
+    font-size: 13px;
+    color: #666;
 }
 
-/* ====== FRIENDS SEARCH ====== */
+/* ====== FRIENDS TAB ====== */
 .search-section {
-    padding: 20px;
-    background: var(--bg-light);
+    padding: 16px;
+    background: #f5f5f5;
     border-radius: 12px;
-    margin-bottom: 30px;
+    margin: 16px;
+    border: 1px solid #e5e5e5;
 }
 
 .search-section h2 {
-    font-size: 18px;
-    margin-bottom: 15px;
+    font-size: 16px;
+    color: #000;
+    margin-bottom: 12px;
+    font-weight: 600;
 }
 
 .search-box {
     display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
+    gap: 8px;
+    margin-bottom: 12px;
 }
 
 .email-input {
     flex: 1;
-    padding: 10px;
-    border: 1px solid var(--border);
+    padding: 12px;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
     font-size: 14px;
+    background: white;
+    color: #000;
+}
+
+.email-input::placeholder {
+    color: #999;
 }
 
 .search-result-box {
-    margin-top: 15px;
+    margin-top: 12px;
 }
 
 .search-result {
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 15px;
-    background: var(--bg-white);
-    border: 1px solid var(--border);
+    gap: 12px;
+    padding: 12px;
+    background: white;
+    border: 1px solid #e5e5e5;
     border-radius: 10px;
 }
 
 .result-avatar {
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     object-fit: cover;
 }
@@ -450,23 +496,25 @@ body {
 .result-name {
     font-weight: 600;
     font-size: 14px;
+    color: #000;
     margin-bottom: 3px;
 }
 
 .result-email {
     font-size: 12px;
-    color: var(--text-gray);
+    color: #666;
 }
 
 /* ====== INVITATIONS ====== */
 .invitations-section {
-    margin-bottom: 30px;
-    padding: 0 20px;
+    margin: 16px;
 }
 
 .invitations-section h2 {
-    font-size: 18px;
-    margin-bottom: 15px;
+    font-size: 16px;
+    color: #000;
+    margin-bottom: 12px;
+    font-weight: 600;
 }
 
 .invitations-list {
@@ -478,15 +526,16 @@ body {
 .invite-item {
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 15px;
-    background: var(--bg-light);
+    gap: 12px;
+    padding: 12px;
+    background: #f5f5f5;
     border-radius: 10px;
+    border: 1px solid #e5e5e5;
 }
 
 .invite-avatar {
-    width: 45px;
-    height: 45px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     object-fit: cover;
 }
@@ -497,28 +546,31 @@ body {
 
 .invite-name {
     font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 3px;
+    font-size: 13px;
+    color: #000;
+    margin-bottom: 2px;
 }
 
 .invite-email {
-    font-size: 12px;
-    color: var(--text-gray);
+    font-size: 11px;
+    color: #666;
 }
 
 .invite-actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
 }
 
 /* ====== FRIENDS ====== */
 .friends-section {
-    padding: 0 20px;
+    margin: 16px;
 }
 
 .friends-section h2 {
-    font-size: 18px;
-    margin-bottom: 15px;
+    font-size: 16px;
+    color: #000;
+    margin-bottom: 12px;
+    font-weight: 600;
 }
 
 .friends-list {
@@ -530,15 +582,16 @@ body {
 .friend-item {
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 15px;
-    background: var(--bg-light);
+    gap: 12px;
+    padding: 12px;
+    background: #f5f5f5;
     border-radius: 10px;
+    border: 1px solid #e5e5e5;
 }
 
 .friend-avatar {
-    width: 45px;
-    height: 45px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     object-fit: cover;
 }
@@ -549,13 +602,14 @@ body {
 
 .friend-name {
     font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 3px;
+    font-size: 13px;
+    color: #000;
+    margin-bottom: 2px;
 }
 
 .friend-email {
-    font-size: 12px;
-    color: var(--text-gray);
+    font-size: 11px;
+    color: #666;
 }
 
 /* ====== NAVBAR ====== */
@@ -566,9 +620,9 @@ body {
     right: 0;
     display: flex;
     justify-content: space-around;
-    background: var(--bg-white);
-    border-top: 1px solid var(--border);
-    padding: 10px 0 20px;
+    background: #fff;
+    border-top: 1px solid #e5e5e5;
+    padding: 8px 0 16px;
     z-index: 999;
 }
 
@@ -576,16 +630,18 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     background: none;
     border: none;
     cursor: pointer;
-    color: var(--text-gray);
-    transition: 0.2s;
+    color: #999;
+    padding: 8px;
+    font-size: 12px;
+    font-weight: 500;
 }
 
 .nav-btn.active {
-    color: var(--text-dark);
+    color: #000;
 }
 
 .nav-icon {
@@ -593,14 +649,13 @@ body {
 }
 
 .nav-label {
-    font-size: 11px;
-    font-weight: 500;
+    font-size: 10px;
 }
 
 /* ====== RESPONSIVE ====== */
 @media (max-width: 480px) {
-    #mainScreen {
-        padding-bottom: 90px;
+    html {
+        font-size: 14px;
     }
 
     .logo {
@@ -608,7 +663,7 @@ body {
     }
 
     .login-container h1 {
-        font-size: 28px;
+        font-size: 26px;
     }
 
     .story-image-container {
@@ -616,23 +671,123 @@ body {
     }
 
     .story-swap-btn {
-        width: 45px;
-        height: 45px;
+        width: 44px;
+        height: 44px;
         font-size: 20px;
+    }
+
+    .search-box {
+        flex-wrap: wrap;
+    }
+
+    .search-box .btn-primary {
+        flex: 1;
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 360px) {
+    .header {
+        padding: 12px 16px;
+    }
+
+    .user-avatar {
+        width: 44px;
+        height: 44px;
+    }
+
+    .photos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+        gap: 8px;
+    }
+
+    .btn-camera {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+        bottom: 80px;
     }
 }
 
 /* ====== DARK MODE ====== */
 @media (prefers-color-scheme: dark) {
-    :root {
-        --bg-white: #000;
-        --text-dark: #fff;
-        --text-gray: #999;
-        --border: #222;
-        --bg-light: #111;
+    body {
+        background: #000;
+        color: #fff;
     }
 
-    body {
-        background: var(--bg-white);
+    .login-container h1 {
+        color: #fff;
+    }
+
+    .header {
+        background: #000;
+        border-bottom-color: #222;
+    }
+
+    .user-name {
+        color: #fff;
+    }
+
+    .status-box {
+        background: #111;
+        border-color: #222;
+    }
+
+    .status-text {
+        color: #fff;
+    }
+
+    .photos-section h2 {
+        color: #fff;
+    }
+
+    .search-section {
+        background: #111;
+        border-color: #222;
+    }
+
+    .search-section h2 {
+        color: #fff;
+    }
+
+    .email-input {
+        background: #1a1a1a;
+        border-color: #222;
+        color: #fff;
+    }
+
+    .search-result {
+        background: #111;
+        border-color: #222;
+    }
+
+    .result-name {
+        color: #fff;
+    }
+
+    .invitations-section h2,
+    .friends-section h2 {
+        color: #fff;
+    }
+
+    .invite-item,
+    .friend-item {
+        background: #111;
+        border-color: #222;
+    }
+
+    .invite-name,
+    .friend-name {
+        color: #fff;
+    }
+
+    .navbar {
+        background: #000;
+        border-top-color: #222;
+    }
+
+    .story-swap-btn {
+        background: rgba(255, 255, 255, 0.85);
     }
 }
