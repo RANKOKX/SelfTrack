@@ -567,6 +567,14 @@ async function sendFriendRequest(friendId, friendName) {
                 status: "pending"
             });
         
+        // NOTIFICATION
+        if ("Notification" in window && Notification.permission === "granted") {
+            new Notification("SelfTrack 👥", {
+                body: `${currentUser.displayName} t'a invité!`,
+                icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%23000' width='192' height='192'/%3E%3Ctext x='96' y='128' font-size='80' fill='white' text-anchor='middle' font-weight='bold'%3ES%3C/text%3E%3C/svg%3E"
+            });
+        }
+        
         alert(`Invitation envoyée à ${friendName}!`);
         friendEmailInput.value = "";
         searchResultBox.innerHTML = "";
