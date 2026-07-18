@@ -32,9 +32,11 @@ let currentUser = null;
 let todayReminders = [];
 let currentReminderId = null;
 let cameraMode = "back";
-let userFriends = [];
+let todaySchedule = [];
+let revealPhotos = [];
+let currentStoryIndex = 0;
 
-// ====== DOM ELEMENTS ======
+// ====== DOM ======
 const loginScreen = document.getElementById("loginScreen");
 const mainScreen = document.getElementById("mainScreen");
 const googleLoginBtn = document.getElementById("googleLoginBtn");
@@ -48,21 +50,27 @@ const photosGrid = document.getElementById("photosGrid");
 const statusText = document.getElementById("statusText");
 const nextReminderText = document.getElementById("nextReminderText");
 const revealBox = document.getElementById("revealBox");
-const revealedPhotos = document.getElementById("revealedPhotos");
 
-// Nav
+// Navigation
 const navBtns = document.querySelectorAll(".nav-btn");
 const tabs = document.querySelectorAll(".tab");
-const inviteLink = document.getElementById("inviteLink");
-const copyLinkBtn = document.getElementById("copyLinkBtn");
-const shareLinkBtn = document.getElementById("shareLinkBtn");
+
+// Stories
+const storiesContainer = document.getElementById("storiesContainer");
+const storyImage = document.getElementById("storyImage");
+const storySwapBtn = document.getElementById("storySwapBtn");
+const storyUserName = document.getElementById("storyUserName");
+const storyUserPhoto = document.getElementById("storyUserPhoto");
+const storyCounter = document.getElementById("storyCounter");
+const storiesPrev = document.getElementById("storiesPrev");
+const storiesNext = document.getElementById("storiesNext");
+
+// Friends
+const friendEmailInput = document.getElementById("friendEmailInput");
+const searchFriendBtn = document.getElementById("searchFriendBtn");
+const searchResultBox = document.getElementById("searchResultBox");
+const invitationsList = document.getElementById("invitationsList");
 const friendsList = document.getElementById("friendsList");
-const profilePhoto = document.getElementById("profilePhoto");
-const profileName = document.getElementById("profileName");
-const profileEmail = document.getElementById("profileEmail");
-const notifToggle = document.getElementById("notifToggle");
-const darkToggle = document.getElementById("darkToggle");
-const deleteAccountBtn = document.getElementById("deleteAccountBtn");
 
 // ====== AUTH ======
 googleLoginBtn.addEventListener("click", () => {
@@ -83,23 +91,24 @@ auth.onAuthStateChanged(async (user) => {
         userName.textContent = user.displayName || "Utilisateur";
         userPhoto.src = user.photoURL || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23000'/%3E%3C/svg%3E";
         
-        // Profile tab
-        profileName.textContent = user.displayName || "Utilisateur";
-        profileEmail.textContent = user.email;
-        profilePhoto.src = user.photoURL || userPhoto.src;
-        
-        // Invite link
-        inviteLink.value = `${window.location.origin}?ref=${user.uid}`;
+        // Initialize user in database
+        await db.collection("users").doc(user.uid).set({
+            displayName: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL
+        }, { merge: true });
         
         updateDateDisplay();
-        initializeTodayReminders();
+        generateOrLoadTodaySchedule();
         loadTodayPhotos();
         checkRevealTime();
-        loadUserFriends();
+        loadInvitations();
+        loadFriends();
         
         setInterval(loadTodayPhotos, 30000);
         setInterval(checkRevealTime, 60000);
-        setInterval(loadUserFriends, 60000);
+        setInterval(loadInvitations, 60000);
+        setInterval(loadFriends, 60000);
     } else {
         currentUser = null;
         mainScreen.classList.remove("active");
@@ -107,70 +116,49 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
-// ====== NAVIGATION ======
-navBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-        const tabName = btn.dataset.tab;
-        
-        // Désactiver tous les tabs
-        tabs.forEach(tab => tab.classList.remove("active"));
-        navBtns.forEach(b => b.classList.remove("active"));
-        
-        // Activer le tab choisi
-        document.getElementById(tabName + "Tab").classList.add("active");
-        btn.classList.add("active");
-    });
-});
-
-// ====== REMINDERS ======
-function initializeTodayReminders() {
+// ====== HORAIRES CENTRALISÉS ======
+async function generateOrLoadTodaySchedule() {
     const today = new Date().toDateString();
     
-    db.collection("reminders")
-        .where("userId", "==", currentUser.uid)
-        .where("date", "==", today)
-        .get()
-        .then(snapshot => {
-            if (snapshot.empty) {
-                generateRemindersForToday();
+    try {
+        const scheduleDoc = await db.collection("schedules").doc(today).get();
+        
+        if (!scheduleDoc.exists) {
+            // Générer les horaires à 7h du matin
+            const now = new Date();
+            if (now.getHours() >= 7) {
+                // Après 7h, générer directement
+                generateDailySchedule(today);
             } else {
-                todayReminders = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                updateReminderStatus();
+                // Avant 7h, attendre 7h
+                const timeUntil7am = new Date();
+                timeUntil7am.setHours(7, 0, 0, 0);
+                const delay = timeUntil7am - now;
+                
+                setTimeout(() => generateDailySchedule(today), delay);
+                statusText.textContent = "Horaires générés à 7h du matin!";
             }
-        })
-        .catch(err => console.error("Error loading reminders:", err));
+        } else {
+            // Charger les horaires du jour
+            todaySchedule = scheduleDoc.data().times;
+            initializeTodayReminders();
+        }
+    } catch (error) {
+        console.error("Error with schedule:", error);
+    }
 }
 
-function generateRemindersForToday() {
-    const today = new Date().toDateString();
+async function generateDailySchedule(today) {
     const times = generateRandomTimes();
     
-    times.forEach((time, index) => {
-        db.collection("reminders").add({
-            userId: currentUser.uid,
-            date: today,
-            time: time,
-            taken: false,
-            backPhotoId: null,
-            frontPhotoId: null,
-            createdAt: new Date()
-        }).then(doc => {
-            todayReminders.push({
-                id: doc.id,
-                userId: currentUser.uid,
-                date: today,
-                time: time,
-                taken: false,
-                backPhotoId: null,
-                frontPhotoId: null
-            });
-            
-            if (index === 0) updateReminderStatus();
-        });
+    // Sauvegarder dans la collection globale
+    await db.collection("schedules").doc(today).set({
+        times: times,
+        generatedAt: new Date()
     });
+    
+    todaySchedule = times;
+    initializeTodayReminders();
 }
 
 function generateRandomTimes() {
@@ -178,14 +166,76 @@ function generateRandomTimes() {
     const startHour = 8;
     const endHour = 20;
     const numReminders = 3;
+    const minGap = 30; // minutes
+    
+    let lastHour = startHour;
+    let lastMin = 0;
     
     for (let i = 0; i < numReminders; i++) {
-        let randomHour = Math.floor(Math.random() * (endHour - startHour)) + startHour;
-        let randomMin = Math.floor(Math.random() * 60);
-        times.push(`${String(randomHour).padStart(2, '0')}:${String(randomMin).padStart(2, '0')}`);
+        const minTime = lastHour * 60 + lastMin + minGap;
+        const maxTime = endHour * 60;
+        
+        if (minTime >= maxTime) break;
+        
+        const randomMinutes = Math.floor(Math.random() * (maxTime - minTime)) + minTime;
+        const hour = Math.floor(randomMinutes / 60);
+        const min = randomMinutes % 60;
+        
+        times.push(`${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`);
+        
+        lastHour = hour;
+        lastMin = min;
     }
     
-    return times.sort();
+    return times;
+}
+
+// ====== REMINDERS ======
+async function initializeTodayReminders() {
+    const today = new Date().toDateString();
+    
+    try {
+        const snapshot = await db.collection("reminders")
+            .where("userId", "==", currentUser.uid)
+            .where("date", "==", today)
+            .get();
+        
+        if (snapshot.empty) {
+            // Créer les reminders pour les horaires du jour
+            for (let time of todaySchedule) {
+                await db.collection("reminders").add({
+                    userId: currentUser.uid,
+                    date: today,
+                    time: time,
+                    taken: false,
+                    backPhotoId: null,
+                    frontPhotoId: null,
+                    missed: false,
+                    createdAt: new Date()
+                });
+            }
+            
+            // Recharger
+            const newSnapshot = await db.collection("reminders")
+                .where("userId", "==", currentUser.uid)
+                .where("date", "==", today)
+                .get();
+            
+            todayReminders = newSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        } else {
+            todayReminders = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        }
+        
+        updateReminderStatus();
+    } catch (error) {
+        console.error("Error initializing reminders:", error);
+    }
 }
 
 function updateReminderStatus() {
@@ -194,7 +244,7 @@ function updateReminderStatus() {
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     
-    const nextReminder = todayReminders.find(r => !r.taken && r.time > currentTime);
+    const nextReminder = todayReminders.find(r => !r.taken && !r.missed && r.time > currentTime);
     
     if (nextReminder) {
         currentReminderId = nextReminder.id;
@@ -203,16 +253,12 @@ function updateReminderStatus() {
         statusText.textContent = `Prochain rappel à ${nextReminder.time}`;
         nextReminderText.textContent = `📍 Vous serez notifiés à ${nextReminder.time}`;
         cameraBtn.style.display = "none";
-        cameraBtn.textContent = "📷";
         
         scheduleReminder(nextReminder);
     } else {
-        const allTaken = todayReminders.every(r => r.taken);
-        if (allTaken) {
-            statusText.textContent = "✅ Toutes les photos du jour sont prises!";
-            nextReminderText.textContent = "Attendez 20h pour la révélation!";
-        } else {
-            statusText.textContent = "Prêt pour le dernier rappel!";
+        const allDone = todayReminders.every(r => r.taken || r.missed);
+        if (allDone) {
+            statusText.textContent = "✅ Photos du jour terminées!";
         }
         cameraBtn.style.display = "none";
     }
@@ -223,6 +269,17 @@ function scheduleReminder(reminder) {
     const [hour, min] = reminder.time.split(":");
     const reminderTime = new Date();
     reminderTime.setHours(parseInt(hour), parseInt(min), 0);
+    
+    // Si le temps est passé et on peut encore prendre la photo (15 min après)
+    const fifteenMinAfter = new Date(reminderTime);
+    fifteenMinAfter.setMinutes(fifteenMinAfter.getMinutes() + 15);
+    
+    if (now > fifteenMinAfter) {
+        // Trop tard, marquer comme manquée
+        db.collection("reminders").doc(reminder.id).update({ missed: true });
+        updateReminderStatus();
+        return;
+    }
     
     if (reminderTime <= now) {
         cameraBtn.style.display = "block";
@@ -242,7 +299,7 @@ function scheduleReminder(reminder) {
 function showNotification(reminder) {
     if ("Notification" in window && Notification.permission === "granted") {
         new Notification("SelfTrack 📸", {
-            body: `C'est le moment! Prendre une photo à ${reminder.time}`,
+            body: `C'est le moment! Prendre une photo (15 min pour le faire)`,
             icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%23000' width='192' height='192'/%3E%3Ctext x='96' y='128' font-size='80' fill='white' text-anchor='middle' font-weight='bold'%3ES%3C/text%3E%3C/svg%3E",
             tag: `reminder-${reminder.id}`,
             requireInteraction: true
@@ -294,7 +351,7 @@ cameraInput.addEventListener("change", async (e) => {
             
             cameraMode = "front";
             cameraBtn.style.display = "block";
-            statusText.textContent = "✅ Photo arrière prise! Selfie avant maintenant";
+            statusText.textContent = "✅ Selfie avant maintenant";
             
         } else {
             await db.collection("reminders").doc(currentReminderId).update({
@@ -302,14 +359,14 @@ cameraInput.addEventListener("change", async (e) => {
                 taken: true
             });
             
-            const nextReminder = todayReminders.find(r => !r.taken);
+            const nextReminder = todayReminders.find(r => !r.taken && !r.missed);
             
             if (nextReminder) {
                 currentReminderId = nextReminder.id;
                 cameraMode = "back";
             }
             
-            statusText.textContent = "✅ Paire de photos sauvegardée!";
+            statusText.textContent = "✅ Photos sauvegardées!";
             cameraBtn.style.display = "none";
             updateReminderStatus();
         }
@@ -318,7 +375,7 @@ cameraInput.addEventListener("change", async (e) => {
         
     } catch (error) {
         console.error("Error uploading photo:", error);
-        statusText.textContent = "❌ Erreur lors de l'upload";
+        statusText.textContent = "❌ Erreur";
     }
     
     cameraInput.value = "";
@@ -336,7 +393,7 @@ async function loadTodayPhotos() {
             .get();
         
         if (snapshot.empty) {
-            photosGrid.innerHTML = '<p class="empty-message">Aucune photo pour le moment</p>';
+            photosGrid.innerHTML = '<p class="empty-message">Aucune photo</p>';
             return;
         }
         
@@ -357,99 +414,272 @@ async function loadTodayPhotos() {
     }
 }
 
-// ====== REVEAL ======
+// ====== STORIES RÉVÉLATION 20H ======
 function checkRevealTime() {
     const now = new Date();
     const hour = now.getHours();
     
     if (hour === 20) {
         revealBox.style.display = "block";
-        loadRevealedPhotos();
+        loadRevealStories();
     } else {
         revealBox.style.display = "none";
     }
 }
 
-async function loadRevealedPhotos() {
+async function loadRevealStories() {
     const today = new Date().toDateString();
     
     try {
-        const snapshot = await db.collection("reminders")
-            .where("date", "==", today)
-            .where("taken", "==", true)
-            .orderBy("time", "asc")
+        // Récupérer tous les reminders du jour (pour les amis)
+        const friendsSnapshot = await db.collection("users")
+            .doc(currentUser.uid)
+            .collection("friends")
             .get();
         
-        revealedPhotos.innerHTML = "";
+        revealPhotos = [];
+        
+        // Pour chaque ami
+        for (const friendDoc of friendsSnapshot.docs) {
+            const friend = friendDoc.data();
+            
+            // Récupérer ses reminders du jour
+            const remindersSnapshot = await db.collection("reminders")
+                .where("userId", "==", friend.uid)
+                .where("date", "==", today)
+                .where("taken", "==", true)
+                .get();
+            
+            remindersSnapshot.forEach(reminderDoc => {
+                const reminder = reminderDoc.data();
+                if (reminder.backPhotoId && reminder.frontPhotoId) {
+                    revealPhotos.push({
+                        friendId: friend.uid,
+                        friendName: friend.displayName,
+                        friendPhoto: friend.photoURL,
+                        backPhotoId: reminder.backPhotoId,
+                        frontPhotoId: reminder.frontPhotoId,
+                        time: reminder.time
+                    });
+                }
+            });
+        }
+        
+        if (revealPhotos.length > 0) {
+            currentStoryIndex = 0;
+            showStory(0);
+            storiesContainer.style.display = "block";
+        } else {
+            storiesContainer.innerHTML = '<p>Aucune photo pour le moment</p>';
+        }
+        
+    } catch (error) {
+        console.error("Error loading stories:", error);
+    }
+}
+
+async function showStory(index) {
+    if (index < 0 || index >= revealPhotos.length) return;
+    
+    currentStoryIndex = index;
+    const story = revealPhotos[index];
+    
+    // Charger les photos
+    const backPhoto = await db.collection("photos").doc(story.backPhotoId).get();
+    const frontPhoto = await db.collection("photos").doc(story.frontPhotoId).get();
+    
+    storyUserName.textContent = story.friendName;
+    storyUserPhoto.src = story.friendPhoto;
+    storyImage.src = backPhoto.data().url;
+    storyImage.dataset.frontUrl = frontPhoto.data().url;
+    storyImage.dataset.isSwapped = "false";
+    storySwapBtn.innerHTML = "📷"; // Reset swap state
+    
+    storyCounter.textContent = `${index + 1}/${revealPhotos.length}`;
+    
+    // Navigation
+    storiesPrev.style.display = index === 0 ? "none" : "block";
+    storiesNext.style.display = index === revealPhotos.length - 1 ? "none" : "block";
+}
+
+storiesPrev.addEventListener("click", () => showStory(currentStoryIndex - 1));
+storiesNext.addEventListener("click", () => showStory(currentStoryIndex + 1));
+
+storySwapBtn.addEventListener("click", () => {
+    const isSwapped = storyImage.dataset.isSwapped === "true";
+    
+    if (isSwapped) {
+        // Retourner à la photo arrière
+        storyImage.src = revealPhotos[currentStoryIndex].backPhotoId;
+        storyImage.dataset.isSwapped = "false";
+    } else {
+        // Aller à la photo avant
+        storyImage.src = storyImage.dataset.frontUrl;
+        storyImage.dataset.isSwapped = "true";
+    }
+});
+
+// ====== SYSTEM D'AMIS PAR EMAIL ======
+searchFriendBtn.addEventListener("click", async () => {
+    const email = friendEmailInput.value.trim();
+    if (!email) return;
+    
+    try {
+        const usersSnapshot = await db.collection("users")
+            .where("email", "==", email)
+            .get();
+        
+        if (usersSnapshot.empty) {
+            searchResultBox.innerHTML = '<p class="empty-message">Utilisateur non trouvé</p>';
+            return;
+        }
+        
+        const user = usersSnapshot.docs[0].data();
+        const userId = usersSnapshot.docs[0].id;
+        
+        searchResultBox.innerHTML = `
+            <div class="search-result">
+                <img src="${user.photoURL}" alt="${user.displayName}" class="result-avatar">
+                <div class="result-info">
+                    <p class="result-name">${user.displayName}</p>
+                    <p class="result-email">${user.email}</p>
+                </div>
+                <button class="btn-invite" onclick="sendFriendRequest('${userId}', '${user.displayName}')">Inviter</button>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error("Error searching:", error);
+    }
+});
+
+async function sendFriendRequest(friendId, friendName) {
+    try {
+        await db.collection("users")
+            .doc(friendId)
+            .collection("invitations")
+            .add({
+                fromId: currentUser.uid,
+                fromName: currentUser.displayName,
+                fromPhoto: currentUser.photoURL,
+                fromEmail: currentUser.email,
+                createdAt: new Date(),
+                status: "pending"
+            });
+        
+        alert(`Invitation envoyée à ${friendName}!`);
+        friendEmailInput.value = "";
+        searchResultBox.innerHTML = "";
+        
+    } catch (error) {
+        console.error("Error sending invitation:", error);
+    }
+}
+
+// ====== INVITATIONS ======
+async function loadInvitations() {
+    if (!currentUser) return;
+    
+    try {
+        const snapshot = await db.collection("users")
+            .doc(currentUser.uid)
+            .collection("invitations")
+            .where("status", "==", "pending")
+            .get();
+        
+        invitationsList.innerHTML = "";
         
         if (snapshot.empty) {
-            revealedPhotos.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 20px;">Pas de photos pour le moment</p>';
+            invitationsList.innerHTML = '<p class="empty-message">Aucune invitation</p>';
             return;
         }
         
         snapshot.forEach(doc => {
-            const reminder = doc.data();
-            
-            if (reminder.backPhotoId && reminder.frontPhotoId) {
-                db.collection("photos").doc(reminder.backPhotoId).get().then(backDoc => {
-                    db.collection("photos").doc(reminder.frontPhotoId).get().then(frontDoc => {
-                        const backPhoto = backDoc.data();
-                        const frontPhoto = frontDoc.data();
-                        
-                        const revealContainer = document.createElement("div");
-                        revealContainer.className = "reveal-container";
-                        revealContainer.innerHTML = `
-                            <div class="reveal-main">
-                                <img src="${backPhoto.url}" alt="Photo arrière" class="reveal-back-photo">
-                                <div class="reveal-front-wrapper" onclick="swapPhotos(this)">
-                                    <img src="${frontPhoto.url}" alt="Photo avant" class="reveal-front-photo">
-                                    <span class="swap-hint">Clic pour échanger</span>
-                                </div>
-                            </div>
-                        `;
-                        revealedPhotos.appendChild(revealContainer);
-                    });
-                });
-            }
+            const invitation = doc.data();
+            const inviteItem = document.createElement("div");
+            inviteItem.className = "invite-item";
+            inviteItem.innerHTML = `
+                <img src="${invitation.fromPhoto}" alt="${invitation.fromName}" class="invite-avatar">
+                <div class="invite-info">
+                    <p class="invite-name">${invitation.fromName}</p>
+                    <p class="invite-email">${invitation.fromEmail}</p>
+                </div>
+                <div class="invite-actions">
+                    <button class="btn-accept" onclick="acceptInvitation('${doc.id}', '${invitation.fromId}', '${invitation.fromName}')">✓</button>
+                    <button class="btn-refuse" onclick="refuseInvitation('${doc.id}')">✕</button>
+                </div>
+            `;
+            invitationsList.appendChild(inviteItem);
         });
         
     } catch (error) {
-        console.error("Error loading revealed photos:", error);
+        console.error("Error loading invitations:", error);
     }
 }
 
-function swapPhotos(element) {
-    const container = element.closest(".reveal-main");
-    const backPhoto = container.querySelector(".reveal-back-photo");
-    const frontPhoto = container.querySelector(".reveal-front-photo");
-    
-    const tempSrc = backPhoto.src;
-    backPhoto.src = frontPhoto.src;
-    frontPhoto.src = tempSrc;
-    
-    container.classList.add("swapped");
-    setTimeout(() => container.classList.remove("swapped"), 300);
+async function acceptInvitation(inviteId, friendId, friendName) {
+    try {
+        const friendDoc = await db.collection("users").doc(friendId).get();
+        const friendData = friendDoc.data();
+        
+        // Ajouter aux amis
+        await db.collection("users").doc(currentUser.uid).collection("friends").doc(friendId).set({
+            uid: friendId,
+            displayName: friendData.displayName,
+            email: friendData.email,
+            photoURL: friendData.photoURL,
+            addedAt: new Date()
+        });
+        
+        // Marquer l'invitation comme acceptée
+        await db.collection("users")
+            .doc(currentUser.uid)
+            .collection("invitations")
+            .doc(inviteId)
+            .update({ status: "accepted" });
+        
+        loadInvitations();
+        loadFriends();
+        alert(`${friendName} ajouté!`);
+        
+    } catch (error) {
+        console.error("Error accepting invitation:", error);
+    }
+}
+
+async function refuseInvitation(inviteId) {
+    try {
+        await db.collection("users")
+            .doc(currentUser.uid)
+            .collection("invitations")
+            .doc(inviteId)
+            .update({ status: "refused" });
+        
+        loadInvitations();
+    } catch (error) {
+        console.error("Error refusing invitation:", error);
+    }
 }
 
 // ====== FRIENDS ======
-async function loadUserFriends() {
+async function loadFriends() {
     if (!currentUser) return;
     
     try {
-        const snapshot = await db.collection("users").doc(currentUser.uid).collection("friends").get();
+        const snapshot = await db.collection("users")
+            .doc(currentUser.uid)
+            .collection("friends")
+            .get();
         
-        userFriends = [];
         friendsList.innerHTML = "";
         
         if (snapshot.empty) {
-            friendsList.innerHTML = '<p class="empty-message">Aucun ami pour le moment</p>';
+            friendsList.innerHTML = '<p class="empty-message">Aucun ami</p>';
             return;
         }
         
         snapshot.forEach(doc => {
             const friend = doc.data();
-            userFriends.push(friend);
-            
             const friendItem = document.createElement("div");
             friendItem.className = "friend-item";
             friendItem.innerHTML = `
@@ -468,118 +698,34 @@ async function loadUserFriends() {
     }
 }
 
-function removeFriend(friendId) {
+async function removeFriend(friendId) {
     if (confirm("Supprimer cet ami?")) {
-        db.collection("users").doc(currentUser.uid).collection("friends").doc(friendId).delete()
-            .then(() => loadUserFriends())
-            .catch(err => console.error("Error removing friend:", err));
-    }
-}
-
-// ====== INVITE LINK ======
-copyLinkBtn.addEventListener("click", () => {
-    inviteLink.select();
-    document.execCommand("copy");
-    copyLinkBtn.textContent = "✅ Copié!";
-    setTimeout(() => copyLinkBtn.textContent = "Copier", 2000);
-});
-
-shareLinkBtn.addEventListener("click", () => {
-    if (navigator.share) {
-        navigator.share({
-            title: "SelfTrack",
-            text: "Rejoins-moi sur SelfTrack!",
-            url: inviteLink.value
-        }).catch(err => console.log("Error sharing:", err));
-    } else {
-        alert("Partage non supporté sur ce navigateur. Utilise le bouton Copier!");
-    }
-});
-
-// Check referral on load
-window.addEventListener("load", () => {
-    const params = new URLSearchParams(window.location.search);
-    const refId = params.get("ref");
-    
-    if (refId && currentUser) {
-        addFriendFromRef(refId);
-    }
-});
-
-async function addFriendFromRef(refId) {
-    if (refId === currentUser.uid) {
-        alert("Tu ne peux pas t'ajouter toi-même!");
-        return;
-    }
-    
-    try {
-        const friendDoc = await db.collection("users").doc(refId).get();
-        
-        if (!friendDoc.exists) {
-            alert("Utilisateur non trouvé!");
-            return;
+        try {
+            await db.collection("users")
+                .doc(currentUser.uid)
+                .collection("friends")
+                .doc(friendId)
+                .delete();
+            
+            loadFriends();
+        } catch (error) {
+            console.error("Error removing friend:", error);
         }
-        
-        const friendData = friendDoc.data();
-        
-        await db.collection("users").doc(currentUser.uid).collection("friends").doc(refId).set({
-            uid: refId,
-            displayName: friendData.displayName,
-            email: friendData.email,
-            photoURL: friendData.photoURL,
-            addedAt: new Date()
-        });
-        
-        alert(`${friendData.displayName} a été ajouté!`);
-        loadUserFriends();
-        
-    } catch (error) {
-        console.error("Error adding friend:", error);
-        alert("Erreur lors de l'ajout de l'ami");
     }
 }
 
-// ====== SETTINGS ======
-deleteAccountBtn.addEventListener("click", () => {
-    if (confirm("Êtes-vous sûr? Cette action est irréversible!")) {
-        currentUser.delete()
-            .then(() => {
-                db.collection("users").doc(currentUser.uid).delete();
-                auth.signOut();
-            })
-            .catch(err => console.error("Error deleting account:", err));
-    }
+// ====== NAVIGATION ======
+navBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const tabName = btn.dataset.tab;
+        
+        tabs.forEach(tab => tab.classList.remove("active"));
+        navBtns.forEach(b => b.classList.remove("active"));
+        
+        document.getElementById(tabName + "Tab").classList.add("active");
+        btn.classList.add("active");
+    });
 });
-
-notifToggle.addEventListener("change", () => {
-    localStorage.setItem("notificationsEnabled", notifToggle.checked);
-});
-
-darkToggle.addEventListener("change", () => {
-    if (darkToggle.checked) {
-        document.body.classList.add("dark-mode");
-        localStorage.setItem("darkMode", "true");
-    } else {
-        document.body.classList.remove("dark-mode");
-        localStorage.setItem("darkMode", "false");
-    }
-});
-
-// ====== MESSAGING ======
-function setupMessaging() {
-    if (!messaging) return;
-    
-    messaging.getToken({ vapidKey: "YOUR_VAPID_KEY" })
-        .then(token => {
-            if (currentUser) {
-                db.collection("users").doc(currentUser.uid).set(
-                    { fcmToken: token, displayName: currentUser.displayName, email: currentUser.email, photoURL: currentUser.photoURL },
-                    { merge: true }
-                );
-            }
-        })
-        .catch(err => console.error("Error getting FCM token:", err));
-}
 
 // ====== UTILS ======
 function updateDateDisplay() {
@@ -592,16 +738,20 @@ if ("Notification" in window && Notification.permission === "default") {
     Notification.requestPermission();
 }
 
-// Load dark mode preference
-if (localStorage.getItem("darkMode") === "true") {
-    document.body.classList.add("dark-mode");
-    darkToggle.checked = true;
+function setupMessaging() {
+    if (!messaging) return;
+    
+    messaging.getToken({ vapidKey: "YOUR_VAPID_KEY" })
+        .then(token => {
+            if (currentUser) {
+                db.collection("users").doc(currentUser.uid).update({ fcmToken: token });
+            }
+        })
+        .catch(err => console.error("Error FCM:", err));
 }
 
 window.addEventListener("load", () => {
     if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.ready.then(() => {
-            console.log("Service Worker prêt");
-        });
+        navigator.serviceWorker.ready.then(() => console.log("SW ready"));
     }
 });
