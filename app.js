@@ -32,7 +32,10 @@ if ("serviceWorker" in navigator) {
 // ====== VARIABLES GLOBALES ======
 let currentUser = null;
 let todayReminders = [];
-let reminderTimes = [];
+let currentReminderId = null;
+let cameraMode = "back"; // "back" ou "front"
+let backPhotoData = null;
+let frontPhotoData = null;
 
 // ====== ÉLÉMENTS DOM ======
 const loginScreen = document.getElementById("loginScreen");
@@ -95,7 +98,7 @@ function initializeTodayReminders() {
         .get()
         .then(snapshot => {
             if (snapshot.empty) {
-                // Créer 5 reminders aléatoires pour aujourd'hui
+                // Créer 3 reminders aléatoires pour aujourd'hui
                 generateRemindersForToday();
             } else {
                 todayReminders = snapshot.docs.map(doc => ({
@@ -118,7 +121,8 @@ function generateRemindersForToday() {
             date: today,
             time: time,
             taken: false,
-            photoId: null,
+            backPhotoId: null,
+            frontPhotoId: null,
             createdAt: new Date()
         }).then(doc => {
             todayReminders.push({
@@ -127,7 +131,8 @@ function generateRemindersForToday() {
                 date: today,
                 time: time,
                 taken: false,
-                photoId: null
+                backPhotoId: null,
+                frontPhotoId: null
             });
             
             if (index === 0) updateReminderStatus();
@@ -137,11 +142,11 @@ function generateRemindersForToday() {
 
 function generateRandomTimes() {
     const times = [];
-    const now = new Date();
     const startHour = 8;
     const endHour = 20;
+    const numReminders = 3;
     
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < numReminders; i++) {
         let randomHour = Math.floor(Math.random() * (endHour - startHour)) + startHour;
         let randomMin = Math.floor(Math.random() * 60);
         times.push(`${String(randomHour).padStart(2, '0')}:${String(randomMin).padStart(2, '0')}`);
@@ -159,11 +164,16 @@ function updateReminderStatus() {
     const nextReminder = todayReminders.find(r => !r.taken && r.time > currentTime);
     
     if (nextReminder) {
+        currentReminderId = nextReminder.id;
+        cameraMode = "back";
+        backPhotoData = null;
+        frontPhotoData = null;
+        
         statusText.textContent = `Prochain rappel à ${nextReminder.time}`;
         nextReminderText.textContent = `📍 Vous serez notifiés à ${nextReminder.time}`;
         cameraBtn.style.display = "none";
+        cameraBtn.textContent = "📷 Caméra Arrière";
         
-        // Planifier le rappel
         scheduleReminder(nextReminder);
     } else {
         const allTaken = todayReminders.every(r => r.taken);
@@ -184,7 +194,6 @@ function scheduleReminder(reminder) {
     reminderTime.setHours(parseInt(hour), parseInt(min), 0);
     
     if (reminderTime <= now) {
-        // Rappel déjà passé, afficher le bouton
         cameraBtn.style.display = "block";
         showNotification(reminder);
         return;
@@ -201,14 +210,11 @@ function scheduleReminder(reminder) {
 
 function showNotification(reminder) {
     if (messaging) {
-        // Envoyer via Firebase Cloud Messaging
         messaging.getToken().then(token => {
             console.log("FCM Token:", token);
-            // Optionnel: envoyer à ton backend pour envoyer le message
         });
     }
     
-    // Notification locale
     if ("Notification" in window && Notification.permission === "granted") {
         new Notification("SelfTrack 📸", {
             body: `C'est le moment! Prendre une photo à ${reminder.time}`,
@@ -221,6 +227,7 @@ function showNotification(reminder) {
 
 // ====== CAMERA ======
 cameraBtn.addEventListener("click", () => {
+    cameraInput.capture = cameraMode === "back" ? "environment" : "user";
     cameraInput.click();
 });
 
@@ -232,42 +239,76 @@ cameraInput.addEventListener("change", async (e) => {
     statusText.textContent = "📤 Upload en cours...";
     
     try {
-        // Upload photo
         const timestamp = new Date().getTime();
-        const filename = `${currentUser.uid}_${timestamp}.jpg`;
+        const cameraType = cameraMode === "back" ? "back" : "front";
+        const filename = `${currentUser.uid}_${timestamp}_${cameraType}.jpg`;
         const photoRef = storage.ref(`photos/${filename}`);
         
         await photoRef.put(file);
         const photoURL = await photoRef.getDownloadURL();
         
-        // Sauvegarder dans Firestore
         const now = new Date();
         const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
         
+        // Créer le document photo
         const photoDoc = await db.collection("photos").add({
             userId: currentUser.uid,
             url: photoURL,
             time: currentTime,
             date: now.toDateString(),
+            cameraType: cameraType,
+            reminderId: currentReminderId,
             createdAt: new Date(),
             userName: currentUser.displayName,
             userPhoto: currentUser.photoURL
         });
         
-        // Marquer le reminder comme taken
-        const currentReminder = todayReminders.find(r => !r.taken);
-        if (currentReminder) {
-            await db.collection("reminders").doc(currentReminder.id).update({
-                taken: true,
-                photoId: photoDoc.id
+        // Mettre à jour le reminder
+        if (cameraMode === "back") {
+            backPhotoData = {
+                id: photoDoc.id,
+                url: photoURL,
+                time: currentTime
+            };
+            
+            await db.collection("reminders").doc(currentReminderId).update({
+                backPhotoId: photoDoc.id
             });
             
-            currentReminder.taken = true;
+            cameraMode = "front";
+            cameraBtn.style.display = "block";
+            cameraBtn.textContent = "📷 Selfie Avant";
+            statusText.textContent = "✅ Photo arrière prise! Selfie avant maintenant";
+            
+        } else {
+            frontPhotoData = {
+                id: photoDoc.id,
+                url: photoURL,
+                time: currentTime
+            };
+            
+            await db.collection("reminders").doc(currentReminderId).update({
+                frontPhotoId: photoDoc.id,
+                taken: true
+            });
+            
+            // Chercher le prochain reminder
+            const nextReminder = todayReminders.find(r => !r.taken && r.time > `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+            
+            if (nextReminder) {
+                currentReminderId = nextReminder.id;
+                cameraMode = "back";
+                backPhotoData = null;
+                frontPhotoData = null;
+                cameraBtn.textContent = "📷 Caméra Arrière";
+            }
+            
+            statusText.textContent = "✅ Paire de photos sauvegardée!";
+            cameraBtn.style.display = "none";
+            updateReminderStatus();
         }
         
-        statusText.textContent = "✅ Photo sauvegardée!";
         loadTodayPhotos();
-        updateReminderStatus();
         
     } catch (error) {
         console.error("Error uploading photo:", error);
@@ -300,7 +341,7 @@ async function loadTodayPhotos() {
             photoItem.className = "photo-item";
             photoItem.innerHTML = `
                 <img src="${photo.url}" alt="Photo">
-                <div class="photo-time">${photo.time}</div>
+                <div class="photo-time">${photo.time} - ${photo.cameraType === "back" ? "Arrière" : "Avant"}</div>
             `;
             photosGrid.appendChild(photoItem);
         });
@@ -314,9 +355,7 @@ async function loadTodayPhotos() {
 function checkRevealTime() {
     const now = new Date();
     const hour = now.getHours();
-    const min = now.getMinutes();
     
-    // Révélation entre 20h00 et 20h59
     if (hour === 20) {
         revealBox.style.display = "block";
         loadRevealedPhotos();
@@ -329,9 +368,11 @@ async function loadRevealedPhotos() {
     const today = new Date().toDateString();
     
     try {
-        const snapshot = await db.collection("photos")
+        const snapshot = await db.collection("reminders")
+            .where("userId", "==", currentUser.uid)
             .where("date", "==", today)
-            .orderBy("createdAt", "asc")
+            .where("taken", "==", true)
+            .orderBy("time", "asc")
             .get();
         
         revealedPhotos.innerHTML = "";
@@ -342,16 +383,51 @@ async function loadRevealedPhotos() {
         }
         
         snapshot.forEach(doc => {
-            const photo = doc.data();
-            const photoDiv = document.createElement("div");
-            photoDiv.className = "revealed-photo";
-            photoDiv.innerHTML = `<img src="${photo.url}" alt="Photo de ${photo.userName}" title="${photo.userName} - ${photo.time}">`;
-            revealedPhotos.appendChild(photoDiv);
+            const reminder = doc.data();
+            
+            if (reminder.backPhotoId && reminder.frontPhotoId) {
+                // Charger les deux photos
+                db.collection("photos").doc(reminder.backPhotoId).get().then(backDoc => {
+                    db.collection("photos").doc(reminder.frontPhotoId).get().then(frontDoc => {
+                        const backPhoto = backDoc.data();
+                        const frontPhoto = frontDoc.data();
+                        
+                        const revealContainer = document.createElement("div");
+                        revealContainer.className = "reveal-container";
+                        revealContainer.innerHTML = `
+                            <div class="reveal-main">
+                                <img src="${backPhoto.url}" alt="Photo arrière" class="reveal-back-photo">
+                                <div class="reveal-front-wrapper" onclick="swapPhotos(this)">
+                                    <img src="${frontPhoto.url}" alt="Photo avant" class="reveal-front-photo">
+                                    <span class="swap-hint">Clic pour échanger</span>
+                                </div>
+                            </div>
+                        `;
+                        revealedPhotos.appendChild(revealContainer);
+                    });
+                });
+            }
         });
         
     } catch (error) {
         console.error("Error loading revealed photos:", error);
     }
+}
+
+// ====== SWAP PHOTOS ======
+function swapPhotos(element) {
+    const container = element.closest(".reveal-main");
+    const backPhoto = container.querySelector(".reveal-back-photo");
+    const frontPhoto = container.querySelector(".reveal-front-photo");
+    
+    // Échanger les sources
+    const tempSrc = backPhoto.src;
+    backPhoto.src = frontPhoto.src;
+    frontPhoto.src = tempSrc;
+    
+    // Petite animation
+    container.classList.add("swapped");
+    setTimeout(() => container.classList.remove("swapped"), 300);
 }
 
 // ====== MESSAGING SETUP ======
@@ -372,12 +448,6 @@ function setupMessaging() {
     
     messaging.onMessage(payload => {
         console.log("Message reçu:", payload);
-        if (payload.notification) {
-            new Notification(payload.notification.title, {
-                body: payload.notification.body,
-                icon: payload.notification.icon
-            });
-        }
     });
 }
 
@@ -388,7 +458,6 @@ function updateDateDisplay() {
     currentDate.textContent = today;
 }
 
-// ====== REQUEST NOTIFICATION PERMISSION ======
 if ("Notification" in window && Notification.permission === "default") {
     Notification.requestPermission().then(permission => {
         if (permission === "granted") {
