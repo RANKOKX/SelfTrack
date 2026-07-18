@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
     <title>SelfTrack</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23000' width='192' height='192'/><text x='96' y='128' font-size='80' fill='white' text-anchor='middle' font-weight='bold'>S</text></svg>">
@@ -10,17 +10,17 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- LOGIN -->
+    <!-- LOGIN SCREEN -->
     <div id="loginScreen" class="screen active">
         <div class="login-container">
             <div class="logo">📸</div>
             <h1>SelfTrack</h1>
-            <p>Photo à 5 moments aléatoires dans la journée</p>
+            <p>Photo à 3 moments aléatoires dans la journée</p>
             <button id="googleLoginBtn" class="btn-primary">Se connecter avec Google</button>
         </div>
     </div>
 
-    <!-- MAIN -->
+    <!-- MAIN SCREEN -->
     <div id="mainScreen" class="screen">
         <div class="header">
             <div class="user-info">
@@ -42,9 +42,7 @@
 
             <div class="photos-section">
                 <h2>Vos photos aujourd'hui</h2>
-                <div id="photosGrid" class="photos-grid">
-                    <p class="empty-message">Aucune photo</p>
-                </div>
+                <div id="photosGrid" class="photos-grid"></div>
             </div>
         </div>
 
@@ -78,44 +76,35 @@
 
         <!-- FRIENDS TAB -->
         <div id="friendsTab" class="tab">
-            <div class="tab-content">
-                <!-- SEARCH -->
-                <div class="search-section">
-                    <h2>Ajouter un ami</h2>
-                    <div class="search-box">
-                        <input type="email" id="friendEmailInput" placeholder="Email de ton ami" class="email-input">
-                        <button id="searchFriendBtn" class="btn-primary">Chercher</button>
-                    </div>
-                    <div id="searchResultBox" class="search-result-box"></div>
+            <!-- SEARCH SECTION -->
+            <div class="search-section">
+                <h2>Ajouter un ami</h2>
+                <div class="search-box">
+                    <input type="email" id="friendEmailInput" placeholder="Email de ton ami" class="email-input">
+                    <button id="searchFriendBtn" class="btn-primary">Chercher</button>
                 </div>
+                
+                <!-- SEARCH RESULT -->
+                <div id="searchResultBox" class="search-result-box"></div>
+            </div>
 
-                <!-- INVITATIONS -->
-                <div class="invitations-section">
-                    <h2>Demandes en attente</h2>
-                    <div id="invitationsList" class="invitations-list">
-                        <p class="empty-message">Aucune invitation</p>
-                    </div>
-                </div>
+            <!-- INVITATIONS SECTION -->
+            <div class="invitations-section">
+                <h2>Demandes en attente</h2>
+                <div id="invitationsList" class="invitations-list"></div>
+            </div>
 
-                <!-- FRIENDS -->
-                <div class="friends-section">
-                    <h2>Tes amis</h2>
-                    <div id="friendsList" class="friends-list">
-                        <p class="empty-message">Aucun ami</p>
-                    </div>
-                </div>
+            <!-- FRIENDS SECTION -->
+            <div class="friends-section">
+                <h2>Tes amis</h2>
+                <div id="friendsList" class="friends-list"></div>
             </div>
         </div>
 
         <!-- MORE TAB -->
         <div id="moreTab" class="tab">
-            <div class="tab-content">
-                <div class="profile-section">
-                    <h2>Profil</h2>
-                    <div class="profile-info">
-                        <p>Settings & options à venir...</p>
-                    </div>
-                </div>
+            <div style="padding: 20px; text-align: center;">
+                <h2>Settings à venir...</h2>
             </div>
         </div>
     </div>
@@ -144,14 +133,14 @@
     <button id="cameraBtn" class="btn-camera" style="display:none;">📷</button>
     <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
 
-    <!-- FIREBASE -->
+    <!-- FIREBASE SCRIPTS -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
-    <!-- APP -->
+    <!-- APP JS -->
     <script defer src="app.js"></script>
 </body>
 </html>
