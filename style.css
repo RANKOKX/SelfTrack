@@ -183,6 +183,7 @@ input, textarea, select {
     font-size: 14px;
     font-weight: 600;
     transition: background 0.2s;
+    min-width: 80px;
 }
 
 .btn-invite:active {
