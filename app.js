@@ -8,7 +8,6 @@ const firebaseConfig = {
     appId: "1:785827170290:web:7015b60e2f3bf5a5ec0d6b"
 };
 
-// Initialiser Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
@@ -19,7 +18,6 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(err => console.log("SW error:", err));
 }
 
-// Initialiser Messaging après SW
 if ("serviceWorker" in navigator) {
     navigator.serviceWorker.ready.then(() => {
         if (firebase.messaging.isSupported()) {
@@ -29,15 +27,14 @@ if ("serviceWorker" in navigator) {
     });
 }
 
-// ====== VARIABLES GLOBALES ======
+// ====== VARIABLES ======
 let currentUser = null;
 let todayReminders = [];
 let currentReminderId = null;
-let cameraMode = "back"; // "back" ou "front"
-let backPhotoData = null;
-let frontPhotoData = null;
+let cameraMode = "back";
+let userFriends = [];
 
-// ====== ÉLÉMENTS DOM ======
+// ====== DOM ELEMENTS ======
 const loginScreen = document.getElementById("loginScreen");
 const mainScreen = document.getElementById("mainScreen");
 const googleLoginBtn = document.getElementById("googleLoginBtn");
@@ -50,9 +47,22 @@ const currentDate = document.getElementById("currentDate");
 const photosGrid = document.getElementById("photosGrid");
 const statusText = document.getElementById("statusText");
 const nextReminderText = document.getElementById("nextReminderText");
-const statusBox = document.getElementById("statusBox");
 const revealBox = document.getElementById("revealBox");
 const revealedPhotos = document.getElementById("revealedPhotos");
+
+// Nav
+const navBtns = document.querySelectorAll(".nav-btn");
+const tabs = document.querySelectorAll(".tab");
+const inviteLink = document.getElementById("inviteLink");
+const copyLinkBtn = document.getElementById("copyLinkBtn");
+const shareLinkBtn = document.getElementById("shareLinkBtn");
+const friendsList = document.getElementById("friendsList");
+const profilePhoto = document.getElementById("profilePhoto");
+const profileName = document.getElementById("profileName");
+const profileEmail = document.getElementById("profileEmail");
+const notifToggle = document.getElementById("notifToggle");
+const darkToggle = document.getElementById("darkToggle");
+const deleteAccountBtn = document.getElementById("deleteAccountBtn");
 
 // ====== AUTH ======
 googleLoginBtn.addEventListener("click", () => {
@@ -71,16 +81,25 @@ auth.onAuthStateChanged(async (user) => {
         mainScreen.classList.add("active");
         
         userName.textContent = user.displayName || "Utilisateur";
-        userPhoto.src = user.photoURL || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23667eea'/%3E%3C/svg%3E";
+        userPhoto.src = user.photoURL || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23000'/%3E%3C/svg%3E";
+        
+        // Profile tab
+        profileName.textContent = user.displayName || "Utilisateur";
+        profileEmail.textContent = user.email;
+        profilePhoto.src = user.photoURL || userPhoto.src;
+        
+        // Invite link
+        inviteLink.value = `${window.location.origin}?ref=${user.uid}`;
         
         updateDateDisplay();
         initializeTodayReminders();
         loadTodayPhotos();
         checkRevealTime();
+        loadUserFriends();
         
-        // Auto-load photos toutes les 30 secondes
         setInterval(loadTodayPhotos, 30000);
         setInterval(checkRevealTime, 60000);
+        setInterval(loadUserFriends, 60000);
     } else {
         currentUser = null;
         mainScreen.classList.remove("active");
@@ -88,7 +107,22 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
-// ====== REMINDERS & NOTIFICATIONS ======
+// ====== NAVIGATION ======
+navBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const tabName = btn.dataset.tab;
+        
+        // Désactiver tous les tabs
+        tabs.forEach(tab => tab.classList.remove("active"));
+        navBtns.forEach(b => b.classList.remove("active"));
+        
+        // Activer le tab choisi
+        document.getElementById(tabName + "Tab").classList.add("active");
+        btn.classList.add("active");
+    });
+});
+
+// ====== REMINDERS ======
 function initializeTodayReminders() {
     const today = new Date().toDateString();
     
@@ -98,7 +132,6 @@ function initializeTodayReminders() {
         .get()
         .then(snapshot => {
             if (snapshot.empty) {
-                // Créer 3 reminders aléatoires pour aujourd'hui
                 generateRemindersForToday();
             } else {
                 todayReminders = snapshot.docs.map(doc => ({
@@ -166,13 +199,11 @@ function updateReminderStatus() {
     if (nextReminder) {
         currentReminderId = nextReminder.id;
         cameraMode = "back";
-        backPhotoData = null;
-        frontPhotoData = null;
         
         statusText.textContent = `Prochain rappel à ${nextReminder.time}`;
         nextReminderText.textContent = `📍 Vous serez notifiés à ${nextReminder.time}`;
         cameraBtn.style.display = "none";
-        cameraBtn.textContent = "📷 Caméra Arrière";
+        cameraBtn.textContent = "📷";
         
         scheduleReminder(nextReminder);
     } else {
@@ -209,16 +240,10 @@ function scheduleReminder(reminder) {
 }
 
 function showNotification(reminder) {
-    if (messaging) {
-        messaging.getToken().then(token => {
-            console.log("FCM Token:", token);
-        });
-    }
-    
     if ("Notification" in window && Notification.permission === "granted") {
         new Notification("SelfTrack 📸", {
             body: `C'est le moment! Prendre une photo à ${reminder.time}`,
-            icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%23667eea' width='192' height='192'/%3E%3Ctext x='96' y='128' font-size='80' fill='white' text-anchor='middle' font-weight='bold'%3ES%3C/text%3E%3C/svg%3E",
+            icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%23000' width='192' height='192'/%3E%3Ctext x='96' y='128' font-size='80' fill='white' text-anchor='middle' font-weight='bold'%3ES%3C/text%3E%3C/svg%3E",
             tag: `reminder-${reminder.id}`,
             requireInteraction: true
         });
@@ -250,7 +275,6 @@ cameraInput.addEventListener("change", async (e) => {
         const now = new Date();
         const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
         
-        // Créer le document photo
         const photoDoc = await db.collection("photos").add({
             userId: currentUser.uid,
             url: photoURL,
@@ -263,44 +287,26 @@ cameraInput.addEventListener("change", async (e) => {
             userPhoto: currentUser.photoURL
         });
         
-        // Mettre à jour le reminder
         if (cameraMode === "back") {
-            backPhotoData = {
-                id: photoDoc.id,
-                url: photoURL,
-                time: currentTime
-            };
-            
             await db.collection("reminders").doc(currentReminderId).update({
                 backPhotoId: photoDoc.id
             });
             
             cameraMode = "front";
             cameraBtn.style.display = "block";
-            cameraBtn.textContent = "📷 Selfie Avant";
             statusText.textContent = "✅ Photo arrière prise! Selfie avant maintenant";
             
         } else {
-            frontPhotoData = {
-                id: photoDoc.id,
-                url: photoURL,
-                time: currentTime
-            };
-            
             await db.collection("reminders").doc(currentReminderId).update({
                 frontPhotoId: photoDoc.id,
                 taken: true
             });
             
-            // Chercher le prochain reminder
-            const nextReminder = todayReminders.find(r => !r.taken && r.time > `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+            const nextReminder = todayReminders.find(r => !r.taken);
             
             if (nextReminder) {
                 currentReminderId = nextReminder.id;
                 cameraMode = "back";
-                backPhotoData = null;
-                frontPhotoData = null;
-                cameraBtn.textContent = "📷 Caméra Arrière";
             }
             
             statusText.textContent = "✅ Paire de photos sauvegardée!";
@@ -318,7 +324,7 @@ cameraInput.addEventListener("change", async (e) => {
     cameraInput.value = "";
 });
 
-// ====== LOAD PHOTOS ======
+// ====== PHOTOS ======
 async function loadTodayPhotos() {
     const today = new Date().toDateString();
     
@@ -351,7 +357,7 @@ async function loadTodayPhotos() {
     }
 }
 
-// ====== REVEAL AT 20H ======
+// ====== REVEAL ======
 function checkRevealTime() {
     const now = new Date();
     const hour = now.getHours();
@@ -369,7 +375,6 @@ async function loadRevealedPhotos() {
     
     try {
         const snapshot = await db.collection("reminders")
-            .where("userId", "==", currentUser.uid)
             .where("date", "==", today)
             .where("taken", "==", true)
             .orderBy("time", "asc")
@@ -386,7 +391,6 @@ async function loadRevealedPhotos() {
             const reminder = doc.data();
             
             if (reminder.backPhotoId && reminder.frontPhotoId) {
-                // Charger les deux photos
                 db.collection("photos").doc(reminder.backPhotoId).get().then(backDoc => {
                     db.collection("photos").doc(reminder.frontPhotoId).get().then(frontDoc => {
                         const backPhoto = backDoc.data();
@@ -414,41 +418,167 @@ async function loadRevealedPhotos() {
     }
 }
 
-// ====== SWAP PHOTOS ======
 function swapPhotos(element) {
     const container = element.closest(".reveal-main");
     const backPhoto = container.querySelector(".reveal-back-photo");
     const frontPhoto = container.querySelector(".reveal-front-photo");
     
-    // Échanger les sources
     const tempSrc = backPhoto.src;
     backPhoto.src = frontPhoto.src;
     frontPhoto.src = tempSrc;
     
-    // Petite animation
     container.classList.add("swapped");
     setTimeout(() => container.classList.remove("swapped"), 300);
 }
 
-// ====== MESSAGING SETUP ======
+// ====== FRIENDS ======
+async function loadUserFriends() {
+    if (!currentUser) return;
+    
+    try {
+        const snapshot = await db.collection("users").doc(currentUser.uid).collection("friends").get();
+        
+        userFriends = [];
+        friendsList.innerHTML = "";
+        
+        if (snapshot.empty) {
+            friendsList.innerHTML = '<p class="empty-message">Aucun ami pour le moment</p>';
+            return;
+        }
+        
+        snapshot.forEach(doc => {
+            const friend = doc.data();
+            userFriends.push(friend);
+            
+            const friendItem = document.createElement("div");
+            friendItem.className = "friend-item";
+            friendItem.innerHTML = `
+                <img src="${friend.photoURL}" alt="${friend.displayName}" class="friend-avatar">
+                <div class="friend-info">
+                    <p class="friend-name">${friend.displayName}</p>
+                    <p class="friend-email">${friend.email}</p>
+                </div>
+                <button class="btn-remove" onclick="removeFriend('${doc.id}')">✕</button>
+            `;
+            friendsList.appendChild(friendItem);
+        });
+        
+    } catch (error) {
+        console.error("Error loading friends:", error);
+    }
+}
+
+function removeFriend(friendId) {
+    if (confirm("Supprimer cet ami?")) {
+        db.collection("users").doc(currentUser.uid).collection("friends").doc(friendId).delete()
+            .then(() => loadUserFriends())
+            .catch(err => console.error("Error removing friend:", err));
+    }
+}
+
+// ====== INVITE LINK ======
+copyLinkBtn.addEventListener("click", () => {
+    inviteLink.select();
+    document.execCommand("copy");
+    copyLinkBtn.textContent = "✅ Copié!";
+    setTimeout(() => copyLinkBtn.textContent = "Copier", 2000);
+});
+
+shareLinkBtn.addEventListener("click", () => {
+    if (navigator.share) {
+        navigator.share({
+            title: "SelfTrack",
+            text: "Rejoins-moi sur SelfTrack!",
+            url: inviteLink.value
+        }).catch(err => console.log("Error sharing:", err));
+    } else {
+        alert("Partage non supporté sur ce navigateur. Utilise le bouton Copier!");
+    }
+});
+
+// Check referral on load
+window.addEventListener("load", () => {
+    const params = new URLSearchParams(window.location.search);
+    const refId = params.get("ref");
+    
+    if (refId && currentUser) {
+        addFriendFromRef(refId);
+    }
+});
+
+async function addFriendFromRef(refId) {
+    if (refId === currentUser.uid) {
+        alert("Tu ne peux pas t'ajouter toi-même!");
+        return;
+    }
+    
+    try {
+        const friendDoc = await db.collection("users").doc(refId).get();
+        
+        if (!friendDoc.exists) {
+            alert("Utilisateur non trouvé!");
+            return;
+        }
+        
+        const friendData = friendDoc.data();
+        
+        await db.collection("users").doc(currentUser.uid).collection("friends").doc(refId).set({
+            uid: refId,
+            displayName: friendData.displayName,
+            email: friendData.email,
+            photoURL: friendData.photoURL,
+            addedAt: new Date()
+        });
+        
+        alert(`${friendData.displayName} a été ajouté!`);
+        loadUserFriends();
+        
+    } catch (error) {
+        console.error("Error adding friend:", error);
+        alert("Erreur lors de l'ajout de l'ami");
+    }
+}
+
+// ====== SETTINGS ======
+deleteAccountBtn.addEventListener("click", () => {
+    if (confirm("Êtes-vous sûr? Cette action est irréversible!")) {
+        currentUser.delete()
+            .then(() => {
+                db.collection("users").doc(currentUser.uid).delete();
+                auth.signOut();
+            })
+            .catch(err => console.error("Error deleting account:", err));
+    }
+});
+
+notifToggle.addEventListener("change", () => {
+    localStorage.setItem("notificationsEnabled", notifToggle.checked);
+});
+
+darkToggle.addEventListener("change", () => {
+    if (darkToggle.checked) {
+        document.body.classList.add("dark-mode");
+        localStorage.setItem("darkMode", "true");
+    } else {
+        document.body.classList.remove("dark-mode");
+        localStorage.setItem("darkMode", "false");
+    }
+});
+
+// ====== MESSAGING ======
 function setupMessaging() {
     if (!messaging) return;
     
     messaging.getToken({ vapidKey: "YOUR_VAPID_KEY" })
         .then(token => {
-            console.log("FCM Token:", token);
             if (currentUser) {
                 db.collection("users").doc(currentUser.uid).set(
-                    { fcmToken: token },
+                    { fcmToken: token, displayName: currentUser.displayName, email: currentUser.email, photoURL: currentUser.photoURL },
                     { merge: true }
-                ).catch(err => console.log("Error saving token:", err));
+                );
             }
         })
         .catch(err => console.error("Error getting FCM token:", err));
-    
-    messaging.onMessage(payload => {
-        console.log("Message reçu:", payload);
-    });
 }
 
 // ====== UTILS ======
@@ -459,14 +589,15 @@ function updateDateDisplay() {
 }
 
 if ("Notification" in window && Notification.permission === "default") {
-    Notification.requestPermission().then(permission => {
-        if (permission === "granted") {
-            console.log("Notifications autorisées");
-        }
-    });
+    Notification.requestPermission();
 }
 
-// ====== INIT ======
+// Load dark mode preference
+if (localStorage.getItem("darkMode") === "true") {
+    document.body.classList.add("dark-mode");
+    darkToggle.checked = true;
+}
+
 window.addEventListener("load", () => {
     if ("serviceWorker" in navigator) {
         navigator.serviceWorker.ready.then(() => {
