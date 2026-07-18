@@ -190,6 +190,23 @@ input, textarea, select {
     background: #38a169;
 }
 
+.btn-danger {
+    background: #f56565;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+    width: 100%;
+}
+
+.btn-danger:active {
+    background: #e53e3e;
+}
+
 /* ====== MAIN SCREEN ====== */
 #mainScreen {
     padding: 0;
@@ -506,6 +523,11 @@ input, textarea, select {
     color: #666;
 }
 
+.result-actions {
+    display: flex;
+    gap: 8px;
+}
+
 /* ====== INVITATIONS ====== */
 .invitations-section {
     margin: 16px;
@@ -611,6 +633,116 @@ input, textarea, select {
 .friend-email {
     font-size: 11px;
     color: #666;
+}
+
+.friend-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ====== PROFILE SETTINGS (MORE TAB) ====== */
+.profile-settings {
+    padding: 16px;
+}
+
+.profile-header {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #f5f5f5;
+    border-radius: 12px;
+}
+
+.profile-photo {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e5e5e5;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: #000;
+    margin-bottom: 4px;
+}
+
+.profile-username {
+    font-size: 12px;
+    color: #666;
+}
+
+.settings-section {
+    margin-bottom: 24px;
+}
+
+.settings-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 12px;
+}
+
+.setting-field {
+    margin-bottom: 16px;
+}
+
+.setting-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 8px;
+}
+
+.input-field {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    color: #000;
+    font-family: inherit;
+}
+
+.input-field::placeholder {
+    color: #999;
+}
+
+.username-input {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.username-input span {
+    padding: 12px;
+    background: #f5f5f5;
+    color: #999;
+    font-weight: 600;
+    border-right: 1px solid #e5e5e5;
+}
+
+.username-input .input-field {
+    border: none;
+    flex: 1;
+}
+
+.help-text {
+    font-size: 11px;
+    color: #999;
+    margin-top: 4px;
 }
 
 /* ====== NAVBAR ====== */
@@ -790,5 +922,68 @@ input, textarea, select {
 
     .story-swap-btn {
         background: rgba(255, 255, 255, 0.85);
+    }
+
+    .profile-header {
+        background: #111;
+        border-color: #222;
+    }
+
+    .profile-name {
+        color: #fff;
+    }
+
+    .settings-section h3 {
+        color: #fff;
+    }
+
+    .input-field {
+        background: #1a1a1a;
+        border-color: #222;
+        color: #fff;
+    }
+
+    .username-input span {
+        background: #111;
+        border-right-color: #222;
+    }
+
+    .story-image-container {
+        background: #111;
+        border-color: #222;
+    }
+
+    .photo-item {
+        background: #111;
+        border-color: #222;
+    }
+
+    .story-header {
+        background: #111;
+        border-color: #222;
+    }
+
+    .story-name {
+        color: #fff;
+    }
+
+    .story-nav-btn {
+        background: #111;
+        border-color: #222;
+        color: #fff;
+    }
+
+    .story-nav-btn:active {
+        background: #fff;
+        color: #000;
+    }
+
+    .reveal-box {
+        background: #111;
+        border-color: #222;
+    }
+
+    .reveal-box h2 {
+        color: #fff;
     }
 }
