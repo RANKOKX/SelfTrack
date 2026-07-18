@@ -789,6 +789,10 @@ async function acceptInvitation(inviteId, friendId, friendName) {
         const friendDoc = await db.collection("users").doc(friendId).get();
         const friendData = friendDoc.data();
         
+        const currentUserDoc = await db.collection("users").doc(currentUser.uid).get();
+        const currentUserData = currentUserDoc.data();
+        
+        // Ajouter l'ami à MA liste
         await db.collection("users").doc(currentUser.uid).collection("friends").doc(friendId).set({
             uid: friendId,
             displayName: friendData.displayName,
@@ -798,6 +802,17 @@ async function acceptInvitation(inviteId, friendId, friendName) {
             addedAt: new Date()
         });
         
+        // ⭐ AJOUTER AUSSI MOI À LA LISTE DE L'AMI (relation mutuelle)
+        await db.collection("users").doc(friendId).collection("friends").doc(currentUser.uid).set({
+            uid: currentUser.uid,
+            displayName: currentUserData.displayName,
+            username: currentUserData.username,
+            email: currentUserData.email,
+            photoURL: currentUserData.photoURL,
+            addedAt: new Date()
+        });
+        
+        // Marquer l'invitation comme acceptée
         await db.collection("users")
             .doc(currentUser.uid)
             .collection("invitations")
