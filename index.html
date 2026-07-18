@@ -3,26 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SelfTrack - Photo à 5 moments</title>
+    <title>SelfTrack</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23000' width='192' height='192'/><text x='96' y='128' font-size='80' fill='white' text-anchor='middle' font-weight='bold'>S</text></svg>">
     <meta name="theme-color" content="#000">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- ÉCRAN LOGIN -->
+    <!-- LOGIN -->
     <div id="loginScreen" class="screen active">
         <div class="login-container">
             <div class="logo">📸</div>
             <h1>SelfTrack</h1>
             <p>Photo à 5 moments aléatoires dans la journée</p>
-            <button id="googleLoginBtn" class="btn-primary">
-                <span>Se connecter avec Google</span>
-            </button>
+            <button id="googleLoginBtn" class="btn-primary">Se connecter avec Google</button>
         </div>
     </div>
 
-    <!-- ÉCRAN PRINCIPAL -->
+    <!-- MAIN -->
     <div id="mainScreen" class="screen">
         <div class="header">
             <div class="user-info">
@@ -35,92 +33,102 @@
             <button id="logoutBtn" class="btn-logout">Déconnexion</button>
         </div>
 
-        <!-- TAB: HOME -->
+        <!-- HOME TAB -->
         <div id="homeTab" class="tab active">
-            <!-- STATUS -->
             <div id="statusBox" class="status-box">
-                <div class="status-content">
-                    <p id="statusText" class="status-text">En attente du premier rappel...</p>
-                    <p id="nextReminderText" class="next-reminder"></p>
-                </div>
+                <p id="statusText" class="status-text">En attente...</p>
+                <p id="nextReminderText" class="next-reminder"></p>
             </div>
 
-            <!-- PHOTOS PRISES -->
             <div class="photos-section">
                 <h2>Vos photos aujourd'hui</h2>
                 <div id="photosGrid" class="photos-grid">
-                    <p class="empty-message">Aucune photo pour le moment</p>
+                    <p class="empty-message">Aucune photo</p>
                 </div>
-            </div>
-
-            <!-- RÉVÉLATION 20H -->
-            <div id="revealBox" class="reveal-box" style="display:none;">
-                <h2>✨ Révélation à 20h ✨</h2>
-                <p>Regardez les photos de tout le monde!</p>
-                <div id="revealedPhotos" class="revealed-photos"></div>
             </div>
         </div>
 
-        <!-- TAB: AMIS -->
-        <div id="friendsTab" class="tab">
-            <div class="tab-content">
-                <!-- SECTION INVITATION -->
-                <div class="invite-section">
-                    <h2>Inviter des amis</h2>
-                    <p class="invite-text">Partage ce lien avec tes amis pour les ajouter</p>
-                    <div class="invite-box">
-                        <input type="text" id="inviteLink" class="invite-link" readonly>
-                        <button id="copyLinkBtn" class="btn-copy">Copier</button>
+        <!-- STORIES TAB -->
+        <div id="storiesTab" class="tab">
+            <div id="storiesContainer" class="stories-container" style="display:none;">
+                <div class="story-header">
+                    <img id="storyUserPhoto" class="story-avatar" src="" alt="">
+                    <div class="story-user-info">
+                        <p id="storyUserName" class="story-name"></p>
+                        <p id="storyCounter" class="story-counter"></p>
                     </div>
-                    <button id="shareLinkBtn" class="btn-primary">Partager</button>
                 </div>
 
-                <!-- SECTION AMIS -->
+                <div class="story-image-container">
+                    <img id="storyImage" class="story-image" src="" alt="">
+                    <button id="storySwapBtn" class="story-swap-btn">📷</button>
+                </div>
+
+                <div class="story-navigation">
+                    <button id="storiesPrev" class="story-nav-btn">← Précédent</button>
+                    <button id="storiesNext" class="story-nav-btn">Suivant →</button>
+                </div>
+            </div>
+
+            <div id="revealBox" class="reveal-box" style="display:none;">
+                <h2>✨ Révélation 20h ✨</h2>
+                <p>Découvre les photos de tes amis!</p>
+            </div>
+        </div>
+
+        <!-- FRIENDS TAB -->
+        <div id="friendsTab" class="tab">
+            <div class="tab-content">
+                <!-- SEARCH -->
+                <div class="search-section">
+                    <h2>Ajouter un ami</h2>
+                    <div class="search-box">
+                        <input type="email" id="friendEmailInput" placeholder="Email de ton ami" class="email-input">
+                        <button id="searchFriendBtn" class="btn-primary">Chercher</button>
+                    </div>
+                    <div id="searchResultBox" class="search-result-box"></div>
+                </div>
+
+                <!-- INVITATIONS -->
+                <div class="invitations-section">
+                    <h2>Demandes en attente</h2>
+                    <div id="invitationsList" class="invitations-list">
+                        <p class="empty-message">Aucune invitation</p>
+                    </div>
+                </div>
+
+                <!-- FRIENDS -->
                 <div class="friends-section">
                     <h2>Tes amis</h2>
                     <div id="friendsList" class="friends-list">
-                        <p class="empty-message">Aucun ami pour le moment</p>
+                        <p class="empty-message">Aucun ami</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- TAB: PLUS -->
+        <!-- MORE TAB -->
         <div id="moreTab" class="tab">
             <div class="tab-content">
                 <div class="profile-section">
-                    <div class="profile-header">
-                        <img id="profilePhoto" class="profile-avatar" src="" alt="">
-                        <div>
-                            <p id="profileName" class="profile-name"></p>
-                            <p id="profileEmail" class="profile-email"></p>
-                        </div>
-                    </div>
-
-                    <div class="settings-list">
-                        <div class="setting-item">
-                            <span>Notifications</span>
-                            <input type="checkbox" id="notifToggle" checked>
-                        </div>
-                        <div class="setting-item">
-                            <span>Mode sombre</span>
-                            <input type="checkbox" id="darkToggle">
-                        </div>
-                    </div>
-
-                    <div class="action-buttons">
-                        <button id="deleteAccountBtn" class="btn-danger">Supprimer le compte</button>
+                    <h2>Profil</h2>
+                    <div class="profile-info">
+                        <p>Settings & options à venir...</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- NAVBAR EN BAS -->
-    <nav class="navbar" id="navbar">
+    <!-- NAVBAR -->
+    <nav class="navbar">
         <button class="nav-btn active" data-tab="home">
             <span class="nav-icon">🏠</span>
             <span class="nav-label">Accueil</span>
+        </button>
+        <button class="nav-btn" data-tab="stories">
+            <span class="nav-icon">✨</span>
+            <span class="nav-label">Révélation</span>
         </button>
         <button class="nav-btn" data-tab="friends">
             <span class="nav-icon">👥</span>
@@ -132,22 +140,18 @@
         </button>
     </nav>
 
-    <!-- BOUTON CAMERA (caché) -->
-    <button id="cameraBtn" class="btn-camera" style="display:none;">
-        📷
-    </button>
-
-    <!-- INPUT CAMERA (caché) -->
+    <!-- CAMERA BUTTON -->
+    <button id="cameraBtn" class="btn-camera" style="display:none;">📷</button>
     <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
 
-    <!-- SCRIPTS FIREBASE -->
+    <!-- FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
-    <!-- APP JS -->
+    <!-- APP -->
     <script defer src="app.js"></script>
 </body>
 </html>
