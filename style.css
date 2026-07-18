@@ -454,6 +454,325 @@ body {
         top: 10px;
         right: 10px;
     }
+    /* À ajouter à la fin du style.css existant */
+
+/* ====== NAVBAR ====== */
+.navbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: var(--bg-white);
+    border-top: 1px solid var(--border);
+    padding: 10px 0 20px 0;
+    z-index: 999;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    color: var(--text-gray);
+    transition: all 0.2s;
+    font-size: 12px;
+}
+
+.nav-btn.active {
+    color: var(--text-dark);
+}
+
+.nav-icon {
+    font-size: 24px;
+}
+
+.nav-label {
+    font-weight: 500;
+    font-size: 11px;
+}
+
+/* ====== MAIN SCREEN PADDING ====== */
+#mainScreen {
+    padding-bottom: 100px;
+}
+
+/* ====== TABS ====== */
+.tab {
+    display: none;
+}
+
+.tab.active {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.tab-content {
+    padding: 20px;
+}
+
+/* ====== HOME TAB ====== */
+#homeTab {
+    padding: 20px;
+}
+
+/* ====== FRIENDS TAB ====== */
+.invite-section {
+    background: var(--bg-light);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.invite-section h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: var(--text-dark);
+}
+
+.invite-text {
+    color: var(--text-gray);
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.invite-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.invite-link {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text-dark);
+    background: var(--bg-white);
+}
+
+.btn-copy {
+    background: var(--text-dark);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.btn-copy:hover {
+    background: #333;
+}
+
+.friends-section h2 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: var(--text-dark);
+    padding: 0 20px;
+}
+
+.friends-list {
+    padding: 0 20px;
+}
+
+.friend-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: var(--bg-light);
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.friend-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border);
+}
+
+.friend-info {
+    flex: 1;
+}
+
+.friend-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-dark);
+    margin-bottom: 3px;
+}
+
+.friend-email {
+    font-size: 12px;
+    color: var(--text-gray);
+}
+
+.btn-remove {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dark);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.2s;
+}
+
+.btn-remove:hover {
+    background: var(--bg-white);
+    border-color: var(--text-dark);
+}
+
+/* ====== MORE TAB ====== */
+.profile-section {
+    padding: 20px;
+}
+
+.profile-header {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: var(--bg-light);
+    border-radius: 12px;
+}
+
+.profile-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--text-dark);
+}
+
+.profile-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text-dark);
+    margin-bottom: 5px;
+}
+
+.profile-email {
+    font-size: 13px;
+    color: var(--text-gray);
+}
+
+.settings-list {
+    margin-bottom: 30px;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: var(--bg-light);
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.setting-item span {
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.setting-item input[type="checkbox"] {
+    width: 44px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-danger {
+    background: #f56565;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-danger:hover {
+    background: #e53e3e;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 480px) {
+    .navbar {
+        padding: 8px 0 16px 0;
+    }
+
+    .nav-btn {
+        gap: 3px;
+        padding: 8px;
+    }
+
+    .nav-icon {
+        font-size: 20px;
+    }
+
+    .nav-label {
+        font-size: 10px;
+    }
+
+    #mainScreen {
+        padding: 15px;
+        padding-bottom: 90px;
+        border-radius: 0;
+    }
+
+    .tab-content {
+        padding: 15px;
+    }
+
+    .profile-header {
+        gap: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .profile-avatar {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+/* ====== DARK MODE NAVBAR ====== */
+@media (prefers-color-scheme: dark) {
+    .navbar {
+        background: var(--bg-white);
+        border-top-color: var(--border);
+    }
+
+    .invite-box input {
+        background: var(--bg-white);
+        color: var(--text-dark);
+        border-color: var(--border);
+    }
+}
 
     .swap-hint {
         font-size: 9px;
