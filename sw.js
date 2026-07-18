@@ -1,5 +1,4 @@
 // Service Worker pour SelfTrack PWA
-
 const CACHE_NAME = "selftrack-v1";
 const urlsToCache = [
     "/",
@@ -94,14 +93,14 @@ messaging.onBackgroundMessage(payload => {
         tag: payload.data?.tag || "notification",
         requireInteraction: true
     };
-
+    
     return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
 // Gérer les clics sur les notifications
 self.addEventListener("notificationclick", event => {
     event.notification.close();
-
+    
     event.waitUntil(
         clients.matchAll({ type: "window" })
             .then(clientList => {
