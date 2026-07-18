@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SelfTrack - Photo à 5 moments</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23667eea' width='192' height='192'/><text x='96' y='128' font-size='80' fill='white' text-anchor='middle' font-weight='bold'>S</text></svg>">
-    <meta name="theme-color" content="#667eea">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23000' width='192' height='192'/><text x='96' y='128' font-size='80' fill='white' text-anchor='middle' font-weight='bold'>S</text></svg>">
+    <meta name="theme-color" content="#000">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -35,44 +35,117 @@
             <button id="logoutBtn" class="btn-logout">Déconnexion</button>
         </div>
 
-        <!-- STATUS -->
-        <div id="statusBox" class="status-box">
-            <div class="status-content">
-                <p id="statusText" class="status-text">En attente du premier rappel...</p>
-                <p id="nextReminderText" class="next-reminder"></p>
+        <!-- TAB: HOME -->
+        <div id="homeTab" class="tab active">
+            <!-- STATUS -->
+            <div id="statusBox" class="status-box">
+                <div class="status-content">
+                    <p id="statusText" class="status-text">En attente du premier rappel...</p>
+                    <p id="nextReminderText" class="next-reminder"></p>
+                </div>
+            </div>
+
+            <!-- PHOTOS PRISES -->
+            <div class="photos-section">
+                <h2>Vos photos aujourd'hui</h2>
+                <div id="photosGrid" class="photos-grid">
+                    <p class="empty-message">Aucune photo pour le moment</p>
+                </div>
+            </div>
+
+            <!-- RÉVÉLATION 20H -->
+            <div id="revealBox" class="reveal-box" style="display:none;">
+                <h2>✨ Révélation à 20h ✨</h2>
+                <p>Regardez les photos de tout le monde!</p>
+                <div id="revealedPhotos" class="revealed-photos"></div>
             </div>
         </div>
 
-        <!-- PHOTOS PRISES -->
-        <div class="photos-section">
-            <h2>Vos photos aujourd'hui</h2>
-            <div id="photosGrid" class="photos-grid">
-                <p class="empty-message">Aucune photo pour le moment</p>
+        <!-- TAB: AMIS -->
+        <div id="friendsTab" class="tab">
+            <div class="tab-content">
+                <!-- SECTION INVITATION -->
+                <div class="invite-section">
+                    <h2>Inviter des amis</h2>
+                    <p class="invite-text">Partage ce lien avec tes amis pour les ajouter</p>
+                    <div class="invite-box">
+                        <input type="text" id="inviteLink" class="invite-link" readonly>
+                        <button id="copyLinkBtn" class="btn-copy">Copier</button>
+                    </div>
+                    <button id="shareLinkBtn" class="btn-primary">Partager</button>
+                </div>
+
+                <!-- SECTION AMIS -->
+                <div class="friends-section">
+                    <h2>Tes amis</h2>
+                    <div id="friendsList" class="friends-list">
+                        <p class="empty-message">Aucun ami pour le moment</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- BOUTON CAMERA (caché sauf si notification) -->
-        <button id="cameraBtn" class="btn-camera" style="display:none;">
-            📷 Prendre une photo
-        </button>
+        <!-- TAB: PLUS -->
+        <div id="moreTab" class="tab">
+            <div class="tab-content">
+                <div class="profile-section">
+                    <div class="profile-header">
+                        <img id="profilePhoto" class="profile-avatar" src="" alt="">
+                        <div>
+                            <p id="profileName" class="profile-name"></p>
+                            <p id="profileEmail" class="profile-email"></p>
+                        </div>
+                    </div>
 
-        <!-- RÉVÉLATION 20H -->
-        <div id="revealBox" class="reveal-box" style="display:none;">
-            <h2>✨ Révélation à 20h ✨</h2>
-            <p>Regardez les photos de tout le monde!</p>
-            <div id="revealedPhotos" class="revealed-photos"></div>
+                    <div class="settings-list">
+                        <div class="setting-item">
+                            <span>Notifications</span>
+                            <input type="checkbox" id="notifToggle" checked>
+                        </div>
+                        <div class="setting-item">
+                            <span>Mode sombre</span>
+                            <input type="checkbox" id="darkToggle">
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="deleteAccountBtn" class="btn-danger">Supprimer le compte</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- NAVBAR EN BAS -->
+    <nav class="navbar" id="navbar">
+        <button class="nav-btn active" data-tab="home">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Accueil</span>
+        </button>
+        <button class="nav-btn" data-tab="friends">
+            <span class="nav-icon">👥</span>
+            <span class="nav-label">Amis</span>
+        </button>
+        <button class="nav-btn" data-tab="more">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">Plus</span>
+        </button>
+    </nav>
+
+    <!-- BOUTON CAMERA (caché) -->
+    <button id="cameraBtn" class="btn-camera" style="display:none;">
+        📷
+    </button>
 
     <!-- INPUT CAMERA (caché) -->
     <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
 
     <!-- SCRIPTS FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
     <!-- APP JS -->
     <script defer src="app.js"></script>
