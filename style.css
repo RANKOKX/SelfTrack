@@ -582,10 +582,34 @@ input, textarea, select {
 
 .conversation-preview {
     font-size: 12px;
-    color: #999;
+    color: #bbb;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.conversation-preview-empty {
+    font-size: 12px;
+    color: #ddd;
+    font-style: italic;
+}
+
+.conversation-start-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+    margin-left: auto;
+}
+
+.conversation-start-btn:active {
+    background: #764ba2;
+    transform: scale(0.95);
 }
 
 /* CHAT VIEW */
@@ -669,9 +693,10 @@ input, textarea, select {
 
 .message-time {
     font-size: 11px;
-    color: #999;
+    color: #bbb;
     margin-top: 4px;
     padding: 0 12px;
+    font-weight: 500;
 }
 
 .message-input-container {
@@ -716,6 +741,28 @@ input, textarea, select {
     display: flex;
     gap: 8px;
     margin-bottom: 12px;
+}
+
+/* Boutons dans la section message/chat */
+.friend-item .btn-invite {
+    background: #667eea;
+    color: white;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    padding: 0;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.friend-item .btn-invite:active {
+    background: #764ba2;
+    transform: scale(0.95);
 }
 
 .email-input {
@@ -1315,6 +1362,19 @@ input, textarea, select {
 
     .conversation-name {
         color: #fff;
+    }
+
+    .conversation-preview {
+        color: #888;
+    }
+
+    .conversation-start-btn {
+        background: #667eea;
+        color: white;
+    }
+
+    .conversation-start-btn:active {
+        background: #764ba2;
     }
 }
 
