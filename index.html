@@ -10,17 +10,17 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- LOGIN SCREEN -->
+    <!-- LOGIN -->
     <div id="loginScreen" class="screen active">
         <div class="login-container">
             <div class="logo">📸</div>
             <h1>SelfTrack</h1>
-            <p>Photo à 3 moments aléatoires dans la journée</p>
+            <p>Photo à 3 moments aléatoires chaque jour</p>
             <button id="googleLoginBtn" class="btn-primary">Se connecter avec Google</button>
         </div>
     </div>
 
-    <!-- MAIN SCREEN -->
+    <!-- MAIN -->
     <div id="mainScreen" class="screen">
         <div class="header">
             <div class="user-info">
@@ -56,55 +56,103 @@
                         <p id="storyCounter" class="story-counter"></p>
                     </div>
                 </div>
-
                 <div class="story-image-container">
                     <img id="storyImage" class="story-image" src="" alt="">
                     <button id="storySwapBtn" class="story-swap-btn">📷</button>
                 </div>
-
                 <div class="story-navigation">
                     <button id="storiesPrev" class="story-nav-btn">← Précédent</button>
                     <button id="storiesNext" class="story-nav-btn">Suivant →</button>
                 </div>
             </div>
-
             <div id="revealBox" class="reveal-box" style="display:none;">
                 <h2>✨ Révélation 20h ✨</h2>
                 <p>Découvre les photos de tes amis!</p>
             </div>
         </div>
 
+        <!-- MESSAGES TAB -->
+        <div id="messagesTab" class="tab">
+            <div class="messages-container">
+                <div id="conversationsList" class="conversations-list"></div>
+                <div id="chatView" class="chat-view" style="display:none;">
+                    <div class="chat-header">
+                        <button class="btn-back">← Retour</button>
+                        <div class="chat-friend-info">
+                            <img id="chatFriendPhoto" class="chat-friend-avatar" src="" alt="">
+                            <p id="chatFriendName" class="chat-friend-name"></p>
+                        </div>
+                    </div>
+                    <div id="messagesBox" class="messages-box"></div>
+                    <div class="message-input-container">
+                        <input type="text" id="messageInput" class="message-input" placeholder="Message...">
+                        <button id="sendMessageBtn" class="btn-send">Envoyer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- FRIENDS TAB -->
         <div id="friendsTab" class="tab">
-            <!-- SEARCH SECTION -->
+            <!-- SEARCH -->
             <div class="search-section">
                 <h2>Ajouter un ami</h2>
                 <div class="search-box">
-                    <input type="email" id="friendEmailInput" placeholder="@username" class="email-input">
+                    <input type="text" id="friendSearchInput" placeholder="@username" class="email-input">
                     <button id="searchFriendBtn" class="btn-primary">Chercher</button>
                 </div>
-                
-                <!-- SEARCH RESULT -->
                 <div id="searchResultBox" class="search-result-box"></div>
             </div>
 
-            <!-- INVITATIONS SECTION -->
+            <!-- INVITATIONS -->
             <div class="invitations-section">
                 <h2>Demandes en attente</h2>
                 <div id="invitationsList" class="invitations-list"></div>
             </div>
 
-            <!-- FRIENDS SECTION -->
+            <!-- FRIENDS -->
             <div class="friends-section">
                 <h2>Tes amis</h2>
                 <div id="friendsList" class="friends-list"></div>
             </div>
         </div>
 
-        <!-- MORE TAB -->
-        <div id="moreTab" class="tab">
-            <div style="padding: 20px; text-align: center;">
-                <h2>Settings à venir...</h2>
+        <!-- SETTINGS TAB -->
+        <div id="settingsTab" class="tab">
+            <div class="settings-container">
+                <div class="profile-header">
+                    <img id="profilePhoto" class="profile-avatar" src="" alt="">
+                    <div class="profile-info">
+                        <p id="profileName" class="profile-name"></p>
+                        <p id="profileUsername" class="profile-username"></p>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Profil</h3>
+                    <div class="setting-field">
+                        <label>Nom d'affichage</label>
+                        <input type="text" id="editDisplayName" class="input-field" placeholder="Ton nom">
+                    </div>
+                    <div class="setting-field">
+                        <label>Nom d'utilisateur (@username)</label>
+                        <div class="username-input">
+                            <span>@</span>
+                            <input type="text" id="editUsername" class="input-field" placeholder="username">
+                        </div>
+                        <p class="help-text">Ça sera utilisé pour te chercher</p>
+                    </div>
+                    <div class="setting-field">
+                        <label>Bio</label>
+                        <textarea id="editBio" class="input-field" placeholder="À propos de toi..." rows="3"></textarea>
+                    </div>
+                    <button id="saveProfileBtn" class="btn-primary">Sauvegarder</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Danger</h3>
+                    <button id="deleteAccountBtn" class="btn-danger">Supprimer mon compte</button>
+                </div>
             </div>
         </div>
     </div>
@@ -119,28 +167,31 @@
             <span class="nav-icon">✨</span>
             <span class="nav-label">Révélation</span>
         </button>
+        <button class="nav-btn" data-tab="messages">
+            <span class="nav-icon">💬</span>
+            <span class="nav-label">Messages</span>
+        </button>
         <button class="nav-btn" data-tab="friends">
             <span class="nav-icon">👥</span>
             <span class="nav-label">Amis</span>
         </button>
-        <button class="nav-btn" data-tab="more">
+        <button class="nav-btn" data-tab="settings">
             <span class="nav-icon">⚙️</span>
-            <span class="nav-label">Plus</span>
+            <span class="nav-label">Paramètres</span>
         </button>
     </nav>
 
-    <!-- CAMERA BUTTON -->
+    <!-- CAMERA -->
     <button id="cameraBtn" class="btn-camera" style="display:none;">📷</button>
     <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
 
-    <!-- FIREBASE SCRIPTS -->
+    <!-- FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
-    <!-- APP JS -->
     <script defer src="app.js"></script>
 </body>
 </html>
