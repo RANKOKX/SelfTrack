@@ -1,4 +1,4 @@
-// ====== FIREBASE CONFIG ======
+// ====== CONFIG ======
 const firebaseConfig = {
     apiKey: "AIzaSyDfab21yuMosZneOeg0UyWJ151E8fvMHGs",
     authDomain: "selftrack-f1a0b.firebaseapp.com",
@@ -12,22 +12,8 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
-let messaging;
 
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js").catch(err => console.log("SW error:", err));
-}
-
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.ready.then(() => {
-        if (firebase.messaging.isSupported()) {
-            messaging = firebase.messaging();
-            setupMessaging();
-        }
-    });
-}
-
-// ====== VARIABLES ======
+// ====== STATE ======
 let currentUser = null;
 let todayReminders = [];
 let currentReminderId = null;
@@ -35,6 +21,8 @@ let cameraMode = "back";
 let todaySchedule = [];
 let revealPhotos = [];
 let currentStoryIndex = 0;
+let currentChatFriendId = null;
+let messagesUnsubscribe = null;
 
 // ====== DOM ======
 const loginScreen = document.getElementById("loginScreen");
@@ -43,19 +31,31 @@ const googleLoginBtn = document.getElementById("googleLoginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const cameraBtn = document.getElementById("cameraBtn");
 const cameraInput = document.getElementById("cameraInput");
+
 const userName = document.getElementById("userName");
 const userPhoto = document.getElementById("userPhoto");
 const currentDate = document.getElementById("currentDate");
 const photosGrid = document.getElementById("photosGrid");
 const statusText = document.getElementById("statusText");
 const nextReminderText = document.getElementById("nextReminderText");
-const revealBox = document.getElementById("revealBox");
 
-// Navigation
 const navBtns = document.querySelectorAll(".nav-btn");
 const tabs = document.querySelectorAll(".tab");
 
-// Stories
+const friendSearchInput = document.getElementById("friendSearchInput");
+const searchFriendBtn = document.getElementById("searchFriendBtn");
+const searchResultBox = document.getElementById("searchResultBox");
+const invitationsList = document.getElementById("invitationsList");
+const friendsList = document.getElementById("friendsList");
+
+const conversationsList = document.getElementById("conversationsList");
+const chatView = document.getElementById("chatView");
+const messagesBox = document.getElementById("messagesBox");
+const messageInput = document.getElementById("messageInput");
+const sendMessageBtn = document.getElementById("sendMessageBtn");
+const chatFriendName = document.getElementById("chatFriendName");
+const chatFriendPhoto = document.getElementById("chatFriendPhoto");
+
 const storiesContainer = document.getElementById("storiesContainer");
 const storyImage = document.getElementById("storyImage");
 const storySwapBtn = document.getElementById("storySwapBtn");
@@ -64,22 +64,16 @@ const storyUserPhoto = document.getElementById("storyUserPhoto");
 const storyCounter = document.getElementById("storyCounter");
 const storiesPrev = document.getElementById("storiesPrev");
 const storiesNext = document.getElementById("storiesNext");
-
-// Friends
-const friendEmailInput = document.getElementById("friendEmailInput");
-const searchFriendBtn = document.getElementById("searchFriendBtn");
-const searchResultBox = document.getElementById("searchResultBox");
-const invitationsList = document.getElementById("invitationsList");
-const friendsList = document.getElementById("friendsList");
+const revealBox = document.getElementById("revealBox");
 
 // ====== AUTH ======
 googleLoginBtn.addEventListener("click", () => {
     const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(err => console.error("Login error:", err));
+    auth.signInWithPopup(provider).catch(err => console.error(err));
 });
 
 logoutBtn.addEventListener("click", () => {
-    auth.signOut().catch(err => console.error("Logout error:", err));
+    auth.signOut();
 });
 
 auth.onAuthStateChanged(async (user) => {
@@ -89,39 +83,42 @@ auth.onAuthStateChanged(async (user) => {
         mainScreen.classList.add("active");
         
         userName.textContent = user.displayName || "Utilisateur";
-        userPhoto.src = user.photoURL || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23000'/%3E%3C/svg%3E";
+        userPhoto.src = user.photoURL || "";
         
-        // Créer/Charger profil utilisateur
         await initializeUserProfile(user);
-        
         updateDateDisplay();
         generateOrLoadTodaySchedule();
         loadTodayPhotos();
         checkRevealTime();
         loadInvitations();
         loadFriends();
-        setupProfileUI();
+        loadConversations();
+        setupSettingsUI();
         
         setInterval(loadTodayPhotos, 30000);
         setInterval(checkRevealTime, 60000);
         setInterval(loadInvitations, 60000);
         setInterval(loadFriends, 60000);
+        setInterval(loadConversations, 30000);
+        
+        if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission();
+        }
     } else {
         currentUser = null;
         mainScreen.classList.remove("active");
         loginScreen.classList.add("active");
+        if (messagesUnsubscribe) messagesUnsubscribe();
     }
 });
 
-// ====== USER PROFILE ======
+// ====== PROFILE ======
 async function initializeUserProfile(user) {
     try {
         const userDoc = await db.collection("users").doc(user.uid).get();
         
         if (!userDoc.exists) {
-            // Créer un nouveau profil
             const username = generateUsername(user.displayName);
-            
             await db.collection("users").doc(user.uid).set({
                 displayName: user.displayName,
                 username: username,
@@ -132,85 +129,46 @@ async function initializeUserProfile(user) {
             });
         }
     } catch (error) {
-        console.error("Error initializing profile:", error);
+        console.error(error);
     }
 }
 
 function generateUsername(displayName) {
-    // Crée un username depuis le displayName
     const base = displayName.toLowerCase().replace(/\s+/g, '_').substring(0, 20);
     const random = Math.floor(Math.random() * 1000);
     return `${base}_${random}`;
 }
 
-function setupProfileUI() {
-    const moreTab = document.getElementById("moreTab");
+function setupSettingsUI() {
+    const profileName = document.getElementById("profileName");
+    const profileUsername = document.getElementById("profileUsername");
+    const profilePhoto = document.getElementById("profilePhoto");
+    const editDisplayName = document.getElementById("editDisplayName");
+    const editUsername = document.getElementById("editUsername");
+    const editBio = document.getElementById("editBio");
+    const saveProfileBtn = document.getElementById("saveProfileBtn");
+    const deleteAccountBtn = document.getElementById("deleteAccountBtn");
     
-    if (!moreTab) return;
-    
-    moreTab.innerHTML = `
-        <div class="profile-settings">
-            <div class="profile-header">
-                <img id="profilePhoto" class="profile-photo" src="${currentUser.photoURL}" alt="">
-                <div class="profile-info">
-                    <p id="profileDisplayName" class="profile-name">${currentUser.displayName}</p>
-                    <p id="profileUsername" class="profile-username"></p>
-                </div>
-            </div>
-
-            <div class="settings-section">
-                <h3>Paramètres du profil</h3>
-                
-                <div class="setting-field">
-                    <label>Nom d'affichage</label>
-                    <input type="text" id="editDisplayName" class="input-field" placeholder="Ton nom">
-                </div>
-
-                <div class="setting-field">
-                    <label>Nom d'utilisateur (@username)</label>
-                    <div class="username-input">
-                        <span>@</span>
-                        <input type="text" id="editUsername" class="input-field" placeholder="username">
-                    </div>
-                    <p class="help-text">Ça sera utilisé pour te chercher en ami</p>
-                </div>
-
-                <div class="setting-field">
-                    <label>Bio</label>
-                    <textarea id="editBio" class="input-field" placeholder="Raconte-nous un peu sur toi..." rows="3"></textarea>
-                </div>
-
-                <button id="saveProfileBtn" class="btn-primary">Sauvegarder</button>
-            </div>
-
-            <div class="settings-section">
-                <h3>Données</h3>
-                <button id="deleteAccountBtn" class="btn-danger">Supprimer mon compte</button>
-            </div>
-        </div>
-    `;
-
-    // Charger les données actuelles
     loadProfileData();
-
-    // Event listeners
-    document.getElementById("saveProfileBtn").addEventListener("click", saveProfile);
-    document.getElementById("deleteAccountBtn").addEventListener("click", deleteAccount);
+    
+    saveProfileBtn.addEventListener("click", saveProfile);
+    deleteAccountBtn.addEventListener("click", deleteAccount);
 }
 
 async function loadProfileData() {
     try {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const userData = userDoc.data();
-
-        document.getElementById("profileDisplayName").textContent = userData.displayName;
+        
+        document.getElementById("profileName").textContent = userData.displayName;
         document.getElementById("profileUsername").textContent = `@${userData.username}`;
+        document.getElementById("profilePhoto").src = userData.photoURL;
         
         document.getElementById("editDisplayName").value = userData.displayName;
         document.getElementById("editUsername").value = userData.username;
         document.getElementById("editBio").value = userData.bio || "";
     } catch (error) {
-        console.error("Error loading profile:", error);
+        console.error(error);
     }
 }
 
@@ -218,63 +176,52 @@ async function saveProfile() {
     const displayName = document.getElementById("editDisplayName").value.trim();
     const username = document.getElementById("editUsername").value.trim().toLowerCase();
     const bio = document.getElementById("editBio").value.trim();
-
-    if (!displayName) {
-        alert("Le nom d'affichage est obligatoire!");
+    
+    if (!displayName || !username) {
+        alert("Tous les champs sont obligatoires!");
         return;
     }
-
-    if (!username) {
-        alert("Le nom d'utilisateur est obligatoire!");
-        return;
-    }
-
+    
     try {
-        // Vérifier que le username est unique (si changé)
         const currentDoc = await db.collection("users").doc(currentUser.uid).get();
         const oldUsername = currentDoc.data().username;
-
+        
         if (username !== oldUsername) {
-            const existingUsername = await db.collection("users")
-                .where("username", "==", username)
-                .get();
-
-            if (!existingUsername.empty) {
-                alert("Ce nom d'utilisateur est déjà pris!");
+            const existing = await db.collection("users").where("username", "==", username).get();
+            if (!existing.empty) {
+                alert("Cet @username est déjà pris!");
                 return;
             }
         }
-
-        // Sauvegarder
+        
         await db.collection("users").doc(currentUser.uid).update({
-            displayName: displayName,
-            username: username,
-            bio: bio
+            displayName,
+            username,
+            bio
         });
-
-        alert("Profil sauvegardé!");
+        
+        alert("✅ Profil sauvegardé!");
         loadProfileData();
-
     } catch (error) {
-        console.error("Error saving profile:", error);
-        alert("Erreur lors de la sauvegarde");
+        console.error(error);
+        alert("❌ Erreur");
     }
 }
 
 async function deleteAccount() {
-    if (confirm("Êtes-vous vraiment sûr? Cette action est irréversible!")) {
-        try {
-            await db.collection("users").doc(currentUser.uid).delete();
-            await currentUser.delete();
-            await auth.signOut();
-        } catch (error) {
-            console.error("Error deleting account:", error);
-            alert("Erreur lors de la suppression");
-        }
+    if (!confirm("Êtes-vous sûr? Cette action est irréversible!")) return;
+    
+    try {
+        await db.collection("users").doc(currentUser.uid).delete();
+        await currentUser.delete();
+        await auth.signOut();
+    } catch (error) {
+        console.error(error);
+        alert("❌ Erreur");
     }
 }
 
-// ====== HORAIRES CENTRALISÉS ======
+// ====== SCHEDULE ======
 async function generateOrLoadTodaySchedule() {
     const today = new Date().toDateString();
     
@@ -298,7 +245,7 @@ async function generateOrLoadTodaySchedule() {
             initializeTodayReminders();
         }
     } catch (error) {
-        console.error("Error with schedule:", error);
+        console.error(error);
     }
 }
 
@@ -343,7 +290,6 @@ function generateRandomTimes() {
     return times;
 }
 
-// ====== REMINDERS ======
 async function initializeTodayReminders() {
     const today = new Date().toDateString();
     
@@ -385,7 +331,7 @@ async function initializeTodayReminders() {
         
         updateReminderStatus();
     } catch (error) {
-        console.error("Error initializing reminders:", error);
+        console.error(error);
     }
 }
 
@@ -400,18 +346,15 @@ function updateReminderStatus() {
     if (nextReminder) {
         currentReminderId = nextReminder.id;
         cameraMode = "back";
-        
         statusText.textContent = `Prochain rappel à ${nextReminder.time}`;
         nextReminderText.textContent = `📍 Vous serez notifiés à ${nextReminder.time}`;
         cameraBtn.style.display = "none";
-        
         scheduleReminder(nextReminder);
     } else {
         const allDone = todayReminders.every(r => r.taken || r.missed);
         if (allDone) {
             statusText.textContent = "✅ Photos du jour terminées!";
         }
-        cameraBtn.style.display = "none";
     }
 }
 
@@ -437,7 +380,6 @@ function scheduleReminder(reminder) {
     }
     
     const delay = reminderTime - now;
-    
     setTimeout(() => {
         showNotification(reminder);
         cameraBtn.style.display = "block";
@@ -448,7 +390,7 @@ function scheduleReminder(reminder) {
 function showNotification(reminder) {
     if ("Notification" in window && Notification.permission === "granted") {
         new Notification("SelfTrack 📸", {
-            body: `C'est le moment! Prendre une photo (15 min pour le faire)`,
+            body: "C'est le moment! Prendre une photo (15 min)",
             icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%23000' width='192' height='192'/%3E%3Ctext x='96' y='128' font-size='80' fill='white' text-anchor='middle' font-weight='bold'%3ES%3C/text%3E%3C/svg%3E",
             tag: `reminder-${reminder.id}`,
             requireInteraction: true
@@ -467,7 +409,7 @@ cameraInput.addEventListener("change", async (e) => {
     if (!file) return;
     
     cameraBtn.style.display = "none";
-    statusText.textContent = "📤 Upload en cours...";
+    statusText.textContent = "📤 Upload...";
     
     try {
         const timestamp = new Date().getTime();
@@ -497,11 +439,9 @@ cameraInput.addEventListener("change", async (e) => {
             await db.collection("reminders").doc(currentReminderId).update({
                 backPhotoId: photoDoc.id
             });
-            
             cameraMode = "front";
             cameraBtn.style.display = "block";
-            statusText.textContent = "✅ Selfie avant maintenant";
-            
+            statusText.textContent = "✅ Selfie maintenant";
         } else {
             await db.collection("reminders").doc(currentReminderId).update({
                 frontPhotoId: photoDoc.id,
@@ -509,7 +449,6 @@ cameraInput.addEventListener("change", async (e) => {
             });
             
             const nextReminder = todayReminders.find(r => !r.taken && !r.missed);
-            
             if (nextReminder) {
                 currentReminderId = nextReminder.id;
                 cameraMode = "back";
@@ -521,9 +460,8 @@ cameraInput.addEventListener("change", async (e) => {
         }
         
         loadTodayPhotos();
-        
     } catch (error) {
-        console.error("Error uploading photo:", error);
+        console.error(error);
         statusText.textContent = "❌ Erreur";
     }
     
@@ -541,33 +479,30 @@ async function loadTodayPhotos() {
             .orderBy("createdAt", "desc")
             .get();
         
+        photosGrid.innerHTML = "";
         if (snapshot.empty) {
             photosGrid.innerHTML = '<p class="empty-message">Aucune photo</p>';
             return;
         }
         
-        photosGrid.innerHTML = "";
         snapshot.forEach(doc => {
             const photo = doc.data();
             const photoItem = document.createElement("div");
             photoItem.className = "photo-item";
             photoItem.innerHTML = `
                 <img src="${photo.url}" alt="Photo">
-                <div class="photo-time">${photo.time} - ${photo.cameraType === "back" ? "Arrière" : "Avant"}</div>
+                <div class="photo-time">${photo.time}</div>
             `;
             photosGrid.appendChild(photoItem);
         });
-        
     } catch (error) {
-        console.error("Error loading photos:", error);
+        console.error(error);
     }
 }
 
-// ====== STORIES RÉVÉLATION 20H ======
+// ====== STORIES ======
 function checkRevealTime() {
-    const now = new Date();
-    const hour = now.getHours();
-    
+    const hour = new Date().getHours();
     if (hour === 20) {
         revealBox.style.display = "block";
         loadRevealStories();
@@ -604,8 +539,7 @@ async function loadRevealStories() {
                         friendName: friend.displayName,
                         friendPhoto: friend.photoURL,
                         backPhotoId: reminder.backPhotoId,
-                        frontPhotoId: reminder.frontPhotoId,
-                        time: reminder.time
+                        frontPhotoId: reminder.frontPhotoId
                     });
                 }
             });
@@ -615,12 +549,9 @@ async function loadRevealStories() {
             currentStoryIndex = 0;
             showStory(0);
             storiesContainer.style.display = "block";
-        } else {
-            storiesContainer.innerHTML = '<p style="text-align: center; padding: 20px;">Aucune photo pour le moment</p>';
         }
-        
     } catch (error) {
-        console.error("Error loading stories:", error);
+        console.error(error);
     }
 }
 
@@ -638,8 +569,6 @@ async function showStory(index) {
     storyImage.src = backPhoto.data().url;
     storyImage.dataset.frontUrl = frontPhoto.data().url;
     storyImage.dataset.isSwapped = "false";
-    storySwapBtn.innerHTML = "📷";
-    
     storyCounter.textContent = `${index + 1}/${revealPhotos.length}`;
     
     storiesPrev.style.display = index === 0 ? "none" : "block";
@@ -651,7 +580,6 @@ storiesNext.addEventListener("click", () => showStory(currentStoryIndex + 1));
 
 storySwapBtn.addEventListener("click", () => {
     const isSwapped = storyImage.dataset.isSwapped === "true";
-    
     if (isSwapped) {
         storyImage.src = revealPhotos[currentStoryIndex].backPhotoId;
         storyImage.dataset.isSwapped = "false";
@@ -661,9 +589,9 @@ storySwapBtn.addEventListener("click", () => {
     }
 });
 
-// ====== RECHERCHE AMIS PAR @USERNAME ======
+// ====== FRIENDS ======
 searchFriendBtn.addEventListener("click", async () => {
-    let searchUsername = friendEmailInput.value.trim().toLowerCase();
+    let searchUsername = friendSearchInput.value.trim().toLowerCase();
     if (searchUsername.startsWith("@")) {
         searchUsername = searchUsername.substring(1);
     }
@@ -697,7 +625,7 @@ searchFriendBtn.addEventListener("click", async () => {
         const resultDiv = document.createElement("div");
         resultDiv.className = "search-result";
         resultDiv.innerHTML = `
-            <img src="${user.photoURL || 'data:image/svg+xml'}" alt="${user.displayName}" class="result-avatar">
+            <img src="${user.photoURL || ''}" alt="${user.displayName}" class="result-avatar">
             <div class="result-info">
                 <p class="result-name">${user.displayName}</p>
                 <p class="result-email">@${user.username}</p>
@@ -706,9 +634,8 @@ searchFriendBtn.addEventListener("click", async () => {
         `;
         
         searchResultBox.appendChild(resultDiv);
-        
     } catch (error) {
-        console.error("Error searching:", error);
+        console.error(error);
         searchResultBox.innerHTML = '<p class="empty-message">Erreur</p>';
     }
 });
@@ -722,24 +649,15 @@ async function sendFriendRequest(friendId, friendName) {
                 fromId: currentUser.uid,
                 fromName: currentUser.displayName,
                 fromPhoto: currentUser.photoURL,
-                fromEmail: currentUser.email,
-                createdAt: new Date(),
-                status: "pending"
+                status: "pending",
+                createdAt: new Date()
             });
         
-        if ("Notification" in window && Notification.permission === "granted") {
-            new Notification("SelfTrack 👥", {
-                body: `${currentUser.displayName} t'a invité!`,
-                icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%23000' width='192' height='192'/%3E%3Ctext x='96' y='128' font-size='80' fill='white' text-anchor='middle' font-weight='bold'%3ES%3C/text%3E%3C/svg%3E"
-            });
-        }
-        
-        alert(`Invitation envoyée à ${friendName}!`);
-        friendEmailInput.value = "";
+        alert(`✅ Invitation envoyée à ${friendName}!`);
+        friendSearchInput.value = "";
         searchResultBox.innerHTML = "";
-        
     } catch (error) {
-        console.error("Error sending invitation:", error);
+        console.error(error);
     }
 }
 
@@ -766,10 +684,9 @@ async function loadInvitations() {
             const inviteItem = document.createElement("div");
             inviteItem.className = "invite-item";
             inviteItem.innerHTML = `
-                <img src="${invitation.fromPhoto}" alt="${invitation.fromName}" class="invite-avatar">
+                <img src="${invitation.fromPhoto || ''}" alt="${invitation.fromName}" class="invite-avatar">
                 <div class="invite-info">
                     <p class="invite-name">${invitation.fromName}</p>
-                    <p class="invite-email">${invitation.fromEmail}</p>
                 </div>
                 <div class="invite-actions">
                     <button class="btn-accept" onclick="acceptInvitation('${doc.id}', '${invitation.fromId}', '${invitation.fromName}')">✓</button>
@@ -778,9 +695,8 @@ async function loadInvitations() {
             `;
             invitationsList.appendChild(inviteItem);
         });
-        
     } catch (error) {
-        console.error("Error loading invitations:", error);
+        console.error(error);
     }
 }
 
@@ -788,11 +704,10 @@ async function acceptInvitation(inviteId, friendId, friendName) {
     try {
         const friendDoc = await db.collection("users").doc(friendId).get();
         const friendData = friendDoc.data();
-        
         const currentUserDoc = await db.collection("users").doc(currentUser.uid).get();
         const currentUserData = currentUserDoc.data();
         
-        // Ajouter l'ami à MA liste
+        // Ajouter l'ami dans la collection de l'utilisateur actuel
         await db.collection("users").doc(currentUser.uid).collection("friends").doc(friendId).set({
             uid: friendId,
             displayName: friendData.displayName,
@@ -802,7 +717,7 @@ async function acceptInvitation(inviteId, friendId, friendName) {
             addedAt: new Date()
         });
         
-        // ⭐ AJOUTER AUSSI MOI À LA LISTE DE L'AMI (relation mutuelle)
+        // Ajouter l'utilisateur actuel dans la collection du friend (amitié bidirectionnelle)
         await db.collection("users").doc(friendId).collection("friends").doc(currentUser.uid).set({
             uid: currentUser.uid,
             displayName: currentUserData.displayName,
@@ -812,19 +727,19 @@ async function acceptInvitation(inviteId, friendId, friendName) {
             addedAt: new Date()
         });
         
-        // Marquer l'invitation comme acceptée
+        // Supprimer l'invitation
         await db.collection("users")
             .doc(currentUser.uid)
             .collection("invitations")
             .doc(inviteId)
             .update({ status: "accepted" });
         
+        alert(`✅ ${friendName} ajouté!`);
         loadInvitations();
         loadFriends();
-        alert(`${friendName} ajouté!`);
-        
+        loadConversations();
     } catch (error) {
-        console.error("Error accepting invitation:", error);
+        console.error(error);
     }
 }
 
@@ -838,11 +753,11 @@ async function refuseInvitation(inviteId) {
         
         loadInvitations();
     } catch (error) {
-        console.error("Error refusing invitation:", error);
+        console.error(error);
     }
 }
 
-// ====== FRIENDS ======
+// ====== FRIENDS LIST ======
 async function loadFriends() {
     if (!currentUser) return;
     
@@ -864,7 +779,7 @@ async function loadFriends() {
             const friendItem = document.createElement("div");
             friendItem.className = "friend-item";
             friendItem.innerHTML = `
-                <img src="${friend.photoURL}" alt="${friend.displayName}" class="friend-avatar">
+                <img src="${friend.photoURL || ''}" alt="${friend.displayName}" class="friend-avatar">
                 <div class="friend-info">
                     <p class="friend-name">${friend.displayName}</p>
                     <p class="friend-email">@${friend.username}</p>
@@ -873,29 +788,192 @@ async function loadFriends() {
             `;
             friendsList.appendChild(friendItem);
         });
-        
     } catch (error) {
-        console.error("Error loading friends:", error);
+        console.error(error);
     }
 }
 
 async function removeFriend(friendId) {
-    if (confirm("Supprimer cet ami?")) {
-        try {
-            await db.collection("users")
-                .doc(currentUser.uid)
-                .collection("friends")
-                .doc(friendId)
-                .delete();
-            
-            loadFriends();
-        } catch (error) {
-            console.error("Error removing friend:", error);
-        }
+    if (!confirm("Supprimer cet ami?")) return;
+    
+    try {
+        await db.collection("users")
+            .doc(currentUser.uid)
+            .collection("friends")
+            .doc(friendId)
+            .delete();
+        
+        loadFriends();
+        loadConversations();
+    } catch (error) {
+        console.error(error);
     }
 }
 
-// ====== NAVIGATION ======
+// ====== MESSAGES ======
+async function loadConversations() {
+    if (!currentUser) return;
+    
+    try {
+        const friendsSnapshot = await db.collection("users")
+            .doc(currentUser.uid)
+            .collection("friends")
+            .get();
+        
+        conversationsList.innerHTML = "";
+        
+        if (friendsSnapshot.empty) {
+            conversationsList.innerHTML = '<p class="empty-message">Aucun ami</p>';
+            return;
+        }
+        
+        for (const friendDoc of friendsSnapshot.docs) {
+            const friend = friendDoc.data();
+            
+            let lastMessage = "Pas de messages";
+            
+            // Récupérer la conversation
+            const conversation = await db.collection("messages")
+                .where("participants", "array-contains", currentUser.uid)
+                .get();
+            
+            const chatDoc = conversation.docs.find(doc => {
+                const participants = doc.data().participants;
+                return participants.includes(friendDoc.id);
+            });
+            
+            if (chatDoc) {
+                const messages = chatDoc.data().messages || [];
+                if (messages.length > 0) {
+                    const lastMsg = messages[messages.length - 1];
+                    lastMessage = lastMsg.text.substring(0, 30);
+                    if (lastMsg.text.length > 30) lastMessage += "...";
+                }
+            }
+            
+            const conversationItem = document.createElement("div");
+            conversationItem.className = "conversation-item";
+            conversationItem.innerHTML = `
+                <img src="${friend.photoURL || ''}" alt="${friend.displayName}" class="conversation-avatar">
+                <div class="conversation-info">
+                    <p class="conversation-name">${friend.displayName}</p>
+                    <p class="conversation-preview">${lastMessage}</p>
+                </div>
+            `;
+            
+            conversationItem.addEventListener("click", () => openChat(friendDoc.id, friend));
+            conversationsList.appendChild(conversationItem);
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+async function openChat(friendId, friend) {
+    currentChatFriendId = friendId;
+    chatFriendName.textContent = friend.displayName;
+    chatFriendPhoto.src = friend.photoURL;
+    
+    document.querySelector(".conversations-list").style.display = "none";
+    chatView.style.display = "flex";
+    
+    loadChatMessages(friendId);
+}
+
+async function loadChatMessages(friendId) {
+    if (messagesUnsubscribe) messagesUnsubscribe();
+    
+    try {
+        const conversation = await db.collection("messages")
+            .where("participants", "array-contains", currentUser.uid)
+            .get();
+        
+        let chatDoc = conversation.docs.find(doc => {
+            const participants = doc.data().participants;
+            return participants.includes(friendId);
+        });
+        
+        messagesBox.innerHTML = "";
+        
+        if (chatDoc) {
+            messagesUnsubscribe = db.collection("messages").doc(chatDoc.id)
+                .onSnapshot(snapshot => {
+                    const messages = snapshot.data().messages || [];
+                    messagesBox.innerHTML = "";
+                    
+                    messages.forEach(msg => {
+                        const msgDiv = document.createElement("div");
+                        msgDiv.className = `message ${msg.senderId === currentUser.uid ? 'own' : ''}`;
+                        const msgTime = new Date(msg.timestamp.seconds * 1000).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        msgDiv.innerHTML = `
+                            <div class="message-bubble">${msg.text}</div>
+                            <div class="message-time">${msgTime}</div>
+                        `;
+                        messagesBox.appendChild(msgDiv);
+                    });
+                    
+                    messagesBox.scrollTop = messagesBox.scrollHeight;
+                });
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+sendMessageBtn.addEventListener("click", sendMessage);
+messageInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+async function sendMessage() {
+    const text = messageInput.value.trim();
+    if (!text) return;
+    
+    try {
+        let conversation = await db.collection("messages")
+            .where("participants", "array-contains", currentUser.uid)
+            .get();
+        
+        let chatDoc = conversation.docs.find(doc => {
+            const participants = doc.data().participants;
+            return participants.includes(currentChatFriendId);
+        });
+        
+        const newMessage = {
+            senderId: currentUser.uid,
+            senderName: currentUser.displayName,
+            text: text,
+            timestamp: new Date()
+        };
+        
+        if (chatDoc) {
+            await db.collection("messages").doc(chatDoc.id).update({
+                messages: firebase.firestore.FieldValue.arrayUnion(newMessage)
+            });
+        } else {
+            await db.collection("messages").add({
+                participants: [currentUser.uid, currentChatFriendId],
+                messages: [newMessage],
+                createdAt: new Date()
+            });
+        }
+        
+        messageInput.value = "";
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+document.querySelector(".btn-back").addEventListener("click", () => {
+    chatView.style.display = "none";
+    document.querySelector(".conversations-list").style.display = "block";
+    if (messagesUnsubscribe) messagesUnsubscribe();
+});
+
+// ====== NAV ======
 navBtns.forEach(btn => {
     btn.addEventListener("click", () => {
         const tabName = btn.dataset.tab;
@@ -915,24 +993,6 @@ function updateDateDisplay() {
     currentDate.textContent = today;
 }
 
-if ("Notification" in window && Notification.permission === "default") {
-    Notification.requestPermission();
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").catch(err => console.log(err));
 }
-
-function setupMessaging() {
-    if (!messaging) return;
-    
-    messaging.getToken({ vapidKey: "YOUR_VAPID_KEY" })
-        .then(token => {
-            if (currentUser) {
-                db.collection("users").doc(currentUser.uid).update({ fcmToken: token });
-            }
-        })
-        .catch(err => console.error("Error FCM:", err));
-}
-
-window.addEventListener("load", () => {
-    if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.ready.then(() => console.log("SW ready"));
-    }
-});
