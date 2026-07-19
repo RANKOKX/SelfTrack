@@ -682,85 +682,96 @@ async function sendFriendRequest(friendId, friendName) {
     }
 }
 
-// ====== INVITATIONS ======
-async function loadInvitations() {
-    if (!currentUser) return;
+let invitationsUnsubscribe = null;
+
+// ====== REAL-TIME INVITATIONS ======
+function setupInvitationsListener() {
+    if (invitationsUnsubscribe) invitationsUnsubscribe();
     
-    try {
-        const snapshot = await db.collection("users")
-            .doc(currentUser.uid)
-            .collection("invitations")
-            .where("status", "==", "pending")
-            .get();
-        
-        invitationsList.innerHTML = "";
-        
-        if (snapshot.empty) {
-            invitationsList.innerHTML = '<p class="empty-message">Aucune invitation</p>';
-            return;
-        }
-        
-        snapshot.forEach(doc => {
-            const invitation = doc.data();
-            const inviteItem = document.createElement("div");
-            inviteItem.className = "invite-item";
-            inviteItem.innerHTML = `
-                <img src="${invitation.fromPhoto || ''}" alt="${invitation.fromName}" class="invite-avatar">
-                <div class="invite-info">
-                    <p class="invite-name">${invitation.fromName}</p>
-                </div>
-                <div class="invite-actions">
-                    <button class="btn-accept" onclick="acceptInvitation('${doc.id}', '${invitation.fromId}', '${invitation.fromName}')">✓</button>
-                    <button class="btn-refuse" onclick="refuseInvitation('${doc.id}')">✕</button>
-                </div>
-            `;
-            invitationsList.appendChild(inviteItem);
+    invitationsUnsubscribe = db.collection("users")
+        .doc(currentUser.uid)
+        .collection("invitations")
+        .where("status", "==", "pending")
+        .onSnapshot(snapshot => {
+            invitationsList.innerHTML = "";
+            
+            if (snapshot.empty) {
+                invitationsList.innerHTML = '<p class="empty-message">Aucune invitation</p>';
+                return;
+            }
+            
+            snapshot.forEach(doc => {
+                const invitation = doc.data();
+                const inviteItem = document.createElement("div");
+                inviteItem.className = "invite-item";
+                inviteItem.innerHTML = `
+                    <img src="${invitation.fromPhoto || ''}" alt="${invitation.fromName}" class="invite-avatar">
+                    <div class="invite-info">
+                        <p class="invite-name">${invitation.fromName}</p>
+                    </div>
+                    <div class="invite-actions">
+                        <button class="btn-accept" onclick="acceptInvitation('${doc.id}', '${invitation.fromId}', '${invitation.fromName}')">✓</button>
+                        <button class="btn-refuse" onclick="refuseInvitation('${doc.id}')">✕</button>
+                    </div>
+                `;
+                invitationsList.appendChild(inviteItem);
+            });
         });
-    } catch (error) {
-        console.error(error);
-    }
 }
 
 async function acceptInvitation(inviteId, friendId, friendName) {
     try {
+        // Désactiver le bouton pendant le traitement
+        event.target.disabled = true;
+        event.target.textContent = "⏳";
+        
         const friendDoc = await db.collection("users").doc(friendId).get();
         const friendData = friendDoc.data();
         const currentUserDoc = await db.collection("users").doc(currentUser.uid).get();
         const currentUserData = currentUserDoc.data();
         
-        // Ajouter l'ami dans la collection de l'utilisateur actuel
-        await db.collection("users").doc(currentUser.uid).collection("friends").doc(friendId).set({
-            uid: friendId,
-            displayName: friendData.displayName,
-            username: friendData.username,
-            email: friendData.email,
-            photoURL: friendData.photoURL,
-            addedAt: new Date()
-        });
-        
-        // Ajouter l'utilisateur actuel dans la collection du friend (amitié bidirectionnelle)
-        await db.collection("users").doc(friendId).collection("friends").doc(currentUser.uid).set({
-            uid: currentUser.uid,
-            displayName: currentUserData.displayName,
-            username: currentUserData.username,
-            email: currentUserData.email,
-            photoURL: currentUserData.photoURL,
-            addedAt: new Date()
-        });
-        
-        // Supprimer l'invitation
-        await db.collection("users")
-            .doc(currentUser.uid)
-            .collection("invitations")
-            .doc(inviteId)
-            .update({ status: "accepted" });
+        // Paralléliser les 3 opérations Firestore
+        await Promise.all([
+            // Ajouter l'ami à MA liste
+            db.collection("users").doc(currentUser.uid).collection("friends").doc(friendId).set({
+                uid: friendId,
+                displayName: friendData.displayName,
+                username: friendData.username,
+                email: friendData.email,
+                photoURL: friendData.photoURL,
+                addedAt: new Date()
+            }),
+            
+            // Ajouter MOI à la liste de l'ami
+            db.collection("users").doc(friendId).collection("friends").doc(currentUser.uid).set({
+                uid: currentUser.uid,
+                displayName: currentUserData.displayName,
+                username: currentUserData.username,
+                email: currentUserData.email,
+                photoURL: currentUserData.photoURL,
+                addedAt: new Date()
+            }),
+            
+            // Mettre à jour l'invitation
+            db.collection("users")
+                .doc(currentUser.uid)
+                .collection("invitations")
+                .doc(inviteId)
+                .update({ status: "accepted" })
+        ]);
         
         alert(`✅ ${friendName} ajouté!`);
         loadInvitations();
         loadFriends();
         loadConversations();
+        
     } catch (error) {
         console.error(error);
+        alert("❌ Erreur");
+        if (event.target) {
+            event.target.disabled = false;
+            event.target.textContent = "✓";
+        }
     }
 }
 
