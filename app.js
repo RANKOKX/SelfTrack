@@ -590,54 +590,75 @@ storySwapBtn.addEventListener("click", () => {
 });
 
 // ====== FRIENDS ======
-searchFriendBtn.addEventListener("click", async () => {
-    let searchUsername = friendSearchInput.value.trim().toLowerCase();
-    if (searchUsername.startsWith("@")) {
-        searchUsername = searchUsername.substring(1);
-    }
+// Recherche en temps réel à partir de 3 lettres
+friendSearchInput.addEventListener("input", async (e) => {
+    let searchQuery = e.target.value.trim().toLowerCase();
     
-    if (!searchUsername) {
-        alert("Tape un @username!");
+    // Si moins de 3 caractères, effacer les résultats
+    if (searchQuery.length < 3) {
+        searchResultBox.innerHTML = '';
         return;
     }
     
+    // Retirer le @ si présent
+    if (searchQuery.startsWith("@")) {
+        searchQuery = searchQuery.substring(1);
+    }
+    
     try {
-        const usersSnapshot = await db.collection("users")
-            .where("username", "==", searchUsername)
-            .get();
+        searchResultBox.innerHTML = '<p class="empty-message">Recherche...</p>';
+        
+        // Chercher par username ET par displayName
+        const usersSnapshot = await db.collection("users").get();
+        const results = [];
+        
+        usersSnapshot.forEach(doc => {
+            const user = doc.data();
+            const userId = doc.id;
+            
+            // Ne pas afficher l'utilisateur actuel
+            if (userId === currentUser.uid) return;
+            
+            // Chercher dans le username et le displayName
+            if (user.username.includes(searchQuery) || user.displayName.toLowerCase().includes(searchQuery)) {
+                results.push({
+                    id: userId,
+                    ...user
+                });
+            }
+        });
         
         searchResultBox.innerHTML = "";
         
-        if (usersSnapshot.empty) {
-            searchResultBox.innerHTML = '<p class="empty-message">Utilisateur non trouvé</p>';
+        if (results.length === 0) {
+            searchResultBox.innerHTML = '<p class="empty-message">Aucun résultat</p>';
             return;
         }
         
-        const userDoc = usersSnapshot.docs[0];
-        const user = userDoc.data();
-        const userId = userDoc.id;
-        
-        if (userId === currentUser.uid) {
-            searchResultBox.innerHTML = '<p class="empty-message">C\'est toi!</p>';
-            return;
-        }
-        
-        const resultDiv = document.createElement("div");
-        resultDiv.className = "search-result";
-        resultDiv.innerHTML = `
-            <img src="${user.photoURL || ''}" alt="${user.displayName}" class="result-avatar">
-            <div class="result-info">
-                <p class="result-name">${user.displayName}</p>
-                <p class="result-email">@${user.username}</p>
-            </div>
-            <button class="btn-invite" onclick="sendFriendRequest('${userId}', '${user.displayName}')">✓ Inviter</button>
-        `;
-        
-        searchResultBox.appendChild(resultDiv);
+        // Afficher max 5 résultats
+        results.slice(0, 5).forEach(user => {
+            const resultDiv = document.createElement("div");
+            resultDiv.className = "search-result";
+            resultDiv.innerHTML = `
+                <img src="${user.photoURL || ''}" alt="${user.displayName}" class="result-avatar">
+                <div class="result-info">
+                    <p class="result-name">${user.displayName}</p>
+                    <p class="result-email">@${user.username}</p>
+                </div>
+                <button class="btn-invite" onclick="sendFriendRequest('${user.id}', '${user.displayName}')">✓ Inviter</button>
+            `;
+            searchResultBox.appendChild(resultDiv);
+        });
     } catch (error) {
         console.error(error);
         searchResultBox.innerHTML = '<p class="empty-message">Erreur</p>';
     }
+});
+
+// Bouton de recherche manuel (fallback)
+searchFriendBtn.addEventListener("click", async () => {
+    const event = new Event('input');
+    friendSearchInput.dispatchEvent(event);
 });
 
 async function sendFriendRequest(friendId, friendName) {
@@ -784,7 +805,10 @@ async function loadFriends() {
                     <p class="friend-name">${friend.displayName}</p>
                     <p class="friend-email">@${friend.username}</p>
                 </div>
-                <button class="btn-remove" onclick="removeFriend('${doc.id}')">✕</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-invite" onclick="startConversation('${doc.id}', '${friend.displayName}', '${friend.photoURL}')">💬</button>
+                    <button class="btn-remove" onclick="removeFriend('${doc.id}')">✕</button>
+                </div>
             `;
             friendsList.appendChild(friendItem);
         });
@@ -811,6 +835,17 @@ async function removeFriend(friendId) {
 }
 
 // ====== MESSAGES ======
+function startConversation(friendId, friendName, friendPhoto) {
+    // Naviguer vers l'onglet messages
+    const messagesTab = document.querySelector('[data-tab="messages"]');
+    messagesTab.click();
+    
+    // Ouvrir le chat avec cet ami
+    setTimeout(() => {
+        openChat(friendId, { displayName: friendName, photoURL: friendPhoto });
+    }, 100);
+}
+
 async function loadConversations() {
     if (!currentUser) return;
     
