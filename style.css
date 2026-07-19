@@ -55,6 +55,12 @@ input, textarea, select {
 .logo {
     font-size: 80px;
     margin-bottom: 20px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
 }
 
 .login-container h1 {
@@ -73,7 +79,7 @@ input, textarea, select {
 
 /* ====== BUTTONS ====== */
 .btn-primary {
-    background: #000;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #fff;
     border: none;
     padding: 14px 30px;
@@ -81,13 +87,15 @@ input, textarea, select {
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.3s ease;
     width: 100%;
     max-width: 400px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .btn-primary:active {
-    background: #333;
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .btn-logout {
@@ -99,6 +107,7 @@ input, textarea, select {
     cursor: pointer;
     font-size: 12px;
     font-weight: 500;
+    transition: all 0.2s;
 }
 
 .btn-logout:active {
@@ -112,18 +121,21 @@ input, textarea, select {
     width: 70px;
     height: 70px;
     border-radius: 50%;
-    background: #000;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
     font-size: 32px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     z-index: 1000;
-    transition: background 0.2s;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-camera:active {
-    background: #333;
+    transform: scale(0.95);
 }
 
 .btn-accept {
@@ -135,11 +147,15 @@ input, textarea, select {
     border-radius: 50%;
     font-size: 18px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-accept:active {
     background: #38a169;
+    transform: scale(0.95);
 }
 
 .btn-refuse {
@@ -151,11 +167,15 @@ input, textarea, select {
     border-radius: 50%;
     font-size: 18px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-refuse:active {
     background: #e53e3e;
+    transform: scale(0.95);
 }
 
 .btn-remove {
@@ -167,6 +187,10 @@ input, textarea, select {
     border-radius: 50%;
     cursor: pointer;
     font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
 }
 
 .btn-remove:active {
@@ -182,12 +206,13 @@ input, textarea, select {
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
-    transition: background 0.2s;
+    transition: all 0.2s;
     min-width: 80px;
 }
 
 .btn-invite:active {
     background: #38a169;
+    transform: scale(0.95);
 }
 
 .btn-danger {
@@ -199,12 +224,44 @@ input, textarea, select {
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
-    transition: background 0.2s;
+    transition: all 0.2s;
     width: 100%;
 }
 
 .btn-danger:active {
     background: #e53e3e;
+    transform: scale(0.98);
+}
+
+.btn-send {
+    background: #000;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.btn-send:active {
+    background: #333;
+    transform: scale(0.95);
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    color: #000;
+    transition: all 0.2s;
+}
+
+.btn-back:active {
+    transform: scale(0.9);
 }
 
 /* ====== MAIN SCREEN ====== */
@@ -220,6 +277,9 @@ input, textarea, select {
     padding: 16px 20px;
     border-bottom: 1px solid #e5e5e5;
     background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .user-info {
@@ -233,7 +293,7 @@ input, textarea, select {
     height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    border: 1px solid #e5e5e5;
+    border: 2px solid #667eea;
 }
 
 .user-name {
@@ -244,39 +304,47 @@ input, textarea, select {
 
 .user-date {
     font-size: 12px;
-    color: #666;
+    color: #999;
     margin-top: 2px;
 }
 
 /* ====== TABS ====== */
 .tab {
     display: none;
+    animation: fadeIn 0.3s ease;
 }
 
 .tab.active {
     display: block;
 }
 
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 /* ====== HOME TAB ====== */
 .status-box {
-    background: #f5f5f5;
-    padding: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
     margin: 16px;
     border-radius: 12px;
     text-align: center;
-    border: 1px solid #e5e5e5;
+    border: none;
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
 }
 
 .status-text {
-    font-size: 16px;
-    font-weight: 600;
-    color: #000;
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
     margin-bottom: 8px;
 }
 
 .next-reminder {
     font-size: 13px;
-    color: #666;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .photos-section {
@@ -298,11 +366,17 @@ input, textarea, select {
 
 .photo-item {
     position: relative;
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
     aspect-ratio: 1;
     border: 1px solid #e5e5e5;
     background: #f5f5f5;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.photo-item:active {
+    transform: scale(0.95);
 }
 
 .photo-item img {
@@ -318,17 +392,17 @@ input, textarea, select {
     right: 0;
     background: rgba(0, 0, 0, 0.8);
     color: white;
-    padding: 5px;
-    font-size: 10px;
+    padding: 6px;
+    font-size: 11px;
     text-align: center;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .empty-message {
     text-align: center;
-    color: #666;
+    color: #999;
     padding: 40px 20px;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 /* ====== STORIES TAB ====== */
@@ -342,8 +416,9 @@ input, textarea, select {
     align-items: center;
     margin-bottom: 16px;
     padding: 12px;
-    background: #f5f5f5;
+    background: linear-gradient(135deg, #f5f7fa 0%, #fff 100%);
     border-radius: 12px;
+    border: 1px solid #e5e5e5;
 }
 
 .story-avatar {
@@ -351,7 +426,7 @@ input, textarea, select {
     height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #000;
+    border: 3px solid #667eea;
 }
 
 .story-user-info {
@@ -360,13 +435,13 @@ input, textarea, select {
 
 .story-name {
     font-weight: 600;
-    font-size: 14px;
+    font-size: 15px;
     color: #000;
 }
 
 .story-counter {
     font-size: 12px;
-    color: #666;
+    color: #999;
     margin-top: 3px;
 }
 
@@ -375,10 +450,11 @@ input, textarea, select {
     width: 100%;
     aspect-ratio: 9/16;
     margin-bottom: 16px;
-    border-radius: 12px;
+    border-radius: 16px;
     overflow: hidden;
     border: 1px solid #e5e5e5;
-    background: #f5f5f5;
+    background: linear-gradient(135deg, #f5f5f5 0%, #e5e5e5 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .story-image {
@@ -394,17 +470,20 @@ input, textarea, select {
     right: 10px;
     width: 48px;
     height: 48px;
-    border-radius: 8px;
+    border-radius: 12px;
     background: rgba(255, 255, 255, 0.95);
     border: none;
     font-size: 24px;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    transition: background 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .story-swap-btn:active {
-    background: white;
+    transform: scale(0.9);
 }
 
 .story-navigation {
@@ -422,32 +501,199 @@ input, textarea, select {
     font-weight: 600;
     font-size: 14px;
     color: #000;
-    transition: background 0.2s;
+    transition: all 0.2s;
 }
 
 .story-nav-btn:active {
-    background: #000;
+    background: #667eea;
     color: white;
+    border-color: #667eea;
 }
 
 .reveal-box {
-    padding: 16px;
-    background: #f5f5f5;
-    border-radius: 12px;
-    border: 1px solid #e5e5e5;
+    padding: 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    border: none;
     text-align: center;
     margin: 16px;
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .reveal-box h2 {
-    font-size: 16px;
-    color: #000;
+    font-size: 20px;
+    color: white;
     margin-bottom: 8px;
 }
 
 .reveal-box p {
-    font-size: 13px;
-    color: #666;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* ====== MESSAGES TAB ====== */
+.messages-container {
+    display: flex;
+    height: 100%;
+    min-height: calc(100vh - 100px);
+}
+
+.conversations-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.conversation-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e5e5;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.conversation-item:active {
+    background: #f5f5f5;
+}
+
+.conversation-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #e5e5e5;
+}
+
+.conversation-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.conversation-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #000;
+    margin-bottom: 4px;
+}
+
+.conversation-preview {
+    font-size: 12px;
+    color: #999;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* CHAT VIEW */
+.chat-view {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e5e5;
+    background: white;
+}
+
+.chat-friend-info {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex: 1;
+}
+
+.chat-friend-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #e5e5e5;
+}
+
+.chat-friend-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #000;
+}
+
+.messages-box {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.message {
+    display: flex;
+    margin-bottom: 8px;
+}
+
+.message.own {
+    justify-content: flex-end;
+}
+
+.message-bubble {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 18px;
+    word-wrap: break-word;
+    font-size: 14px;
+}
+
+.message.own .message-bubble {
+    background: #000;
+    color: white;
+}
+
+.message:not(.own) .message-bubble {
+    background: #f5f5f5;
+    color: #000;
+}
+
+.message-time {
+    font-size: 11px;
+    color: #999;
+    margin-top: 4px;
+    padding: 0 12px;
+}
+
+.message-input-container {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid #e5e5e5;
+    background: white;
+}
+
+.message-input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #e5e5e5;
+    border-radius: 20px;
+    font-size: 14px;
+    background: white;
+    color: #000;
+}
+
+.message-input::placeholder {
+    color: #999;
 }
 
 /* ====== FRIENDS TAB ====== */
@@ -480,6 +726,13 @@ input, textarea, select {
     font-size: 14px;
     background: white;
     color: #000;
+    transition: all 0.2s;
+}
+
+.email-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .email-input::placeholder {
@@ -498,6 +751,7 @@ input, textarea, select {
     background: white;
     border: 1px solid #e5e5e5;
     border-radius: 10px;
+    margin-bottom: 8px;
 }
 
 .result-avatar {
@@ -505,6 +759,7 @@ input, textarea, select {
     height: 48px;
     border-radius: 50%;
     object-fit: cover;
+    border: 2px solid #667eea;
 }
 
 .result-info {
@@ -513,19 +768,14 @@ input, textarea, select {
 
 .result-name {
     font-weight: 600;
-    font-size: 14px;
+    font-size: 15px;
     color: #000;
     margin-bottom: 3px;
 }
 
 .result-email {
     font-size: 12px;
-    color: #666;
-}
-
-.result-actions {
-    display: flex;
-    gap: 8px;
+    color: #999;
 }
 
 /* ====== INVITATIONS ====== */
@@ -561,6 +811,7 @@ input, textarea, select {
     height: 44px;
     border-radius: 50%;
     object-fit: cover;
+    border: 2px solid #667eea;
 }
 
 .invite-info {
@@ -569,14 +820,14 @@ input, textarea, select {
 
 .invite-name {
     font-weight: 600;
-    font-size: 13px;
+    font-size: 14px;
     color: #000;
     margin-bottom: 2px;
 }
 
 .invite-email {
     font-size: 11px;
-    color: #666;
+    color: #999;
 }
 
 .invite-actions {
@@ -610,6 +861,11 @@ input, textarea, select {
     background: #f5f5f5;
     border-radius: 10px;
     border: 1px solid #e5e5e5;
+    transition: all 0.2s;
+}
+
+.friend-item:active {
+    background: #f0f0f0;
 }
 
 .friend-avatar {
@@ -617,6 +873,7 @@ input, textarea, select {
     height: 44px;
     border-radius: 50%;
     object-fit: cover;
+    border: 2px solid #667eea;
 }
 
 .friend-info {
@@ -625,23 +882,18 @@ input, textarea, select {
 
 .friend-name {
     font-weight: 600;
-    font-size: 13px;
+    font-size: 14px;
     color: #000;
     margin-bottom: 2px;
 }
 
 .friend-email {
     font-size: 11px;
-    color: #666;
+    color: #999;
 }
 
-.friend-actions {
-    display: flex;
-    gap: 8px;
-}
-
-/* ====== PROFILE SETTINGS (MORE TAB) ====== */
-.profile-settings {
+/* ====== SETTINGS TAB ====== */
+.settings-container {
     padding: 16px;
 }
 
@@ -653,14 +905,15 @@ input, textarea, select {
     padding: 16px;
     background: #f5f5f5;
     border-radius: 12px;
+    border: 1px solid #e5e5e5;
 }
 
-.profile-photo {
+.profile-avatar {
     width: 64px;
     height: 64px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #e5e5e5;
+    border: 2px solid #667eea;
 }
 
 .profile-info {
@@ -676,7 +929,7 @@ input, textarea, select {
 
 .profile-username {
     font-size: 12px;
-    color: #666;
+    color: #999;
 }
 
 .settings-section {
@@ -711,6 +964,13 @@ input, textarea, select {
     background: white;
     color: #000;
     font-family: inherit;
+    transition: all 0.2s;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .input-field::placeholder {
@@ -757,6 +1017,7 @@ input, textarea, select {
     border-top: 1px solid #e5e5e5;
     padding: 8px 0 16px;
     z-index: 999;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .nav-btn {
@@ -771,14 +1032,21 @@ input, textarea, select {
     padding: 8px;
     font-size: 12px;
     font-weight: 500;
+    transition: all 0.2s;
+    flex: 1;
 }
 
 .nav-btn.active {
-    color: #000;
+    color: #667eea;
 }
 
 .nav-icon {
     font-size: 24px;
+    transition: transform 0.2s;
+}
+
+.nav-btn.active .nav-icon {
+    transform: scale(1.1);
 }
 
 .nav-label {
@@ -810,23 +1078,11 @@ input, textarea, select {
     }
 
     .search-box {
-        flex-wrap: wrap;
+        flex-direction: column;
     }
 
     .search-box .btn-primary {
-        flex: 1;
-        min-width: 100%;
-    }
-}
-
-@media (max-width: 360px) {
-    .header {
-        padding: 12px 16px;
-    }
-
-    .user-avatar {
-        width: 44px;
-        height: 44px;
+        width: 100%;
     }
 
     .photos-grid {
@@ -839,6 +1095,37 @@ input, textarea, select {
         height: 60px;
         font-size: 28px;
         bottom: 80px;
+        right: 16px;
+    }
+
+    .header {
+        padding: 12px 16px;
+    }
+
+    .user-avatar {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+@media (max-width: 360px) {
+    .photos-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .btn-camera {
+        width: 56px;
+        height: 56px;
+        font-size: 24px;
+    }
+
+    .search-box {
+        flex-direction: column;
+    }
+
+    .story-nav-btn {
+        font-size: 12px;
+        padding: 10px;
     }
 }
 
@@ -854,7 +1141,7 @@ input, textarea, select {
     }
 
     .header {
-        background: #000;
+        background: #111;
         border-bottom-color: #222;
     }
 
@@ -862,9 +1149,12 @@ input, textarea, select {
         color: #fff;
     }
 
+    .user-avatar {
+        border-color: #667eea;
+    }
+
     .status-box {
-        background: #111;
-        border-color: #222;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
 
     .status-text {
@@ -873,6 +1163,11 @@ input, textarea, select {
 
     .photos-section h2 {
         color: #fff;
+    }
+
+    .photo-item {
+        background: #111;
+        border-color: #222;
     }
 
     .search-section {
@@ -888,6 +1183,10 @@ input, textarea, select {
         background: #1a1a1a;
         border-color: #222;
         color: #fff;
+    }
+
+    .email-input:focus {
+        border-color: #667eea;
     }
 
     .search-result {
@@ -920,8 +1219,70 @@ input, textarea, select {
         border-top-color: #222;
     }
 
-    .story-swap-btn {
-        background: rgba(255, 255, 255, 0.85);
+    .story-header {
+        background: #111;
+        border-color: #222;
+    }
+
+    .story-name {
+        color: #fff;
+    }
+
+    .story-nav-btn {
+        background: #111;
+        border-color: #222;
+        color: #fff;
+    }
+
+    .story-nav-btn:active {
+        background: #667eea;
+        border-color: #667eea;
+    }
+
+    .reveal-box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .story-image-container {
+        background: #111;
+        border-color: #222;
+    }
+
+    .chat-view {
+        background: #000;
+    }
+
+    .chat-header {
+        background: #111;
+        border-bottom-color: #222;
+    }
+
+    .btn-back {
+        color: #fff;
+    }
+
+    .chat-friend-name {
+        color: #fff;
+    }
+
+    .messages-box {
+        background: #000;
+    }
+
+    .message:not(.own) .message-bubble {
+        background: #111;
+        color: #fff;
+    }
+
+    .message-input-container {
+        background: #000;
+        border-top-color: #222;
+    }
+
+    .message-input {
+        background: #111;
+        border-color: #222;
+        color: #fff;
     }
 
     .profile-header {
@@ -948,42 +1309,24 @@ input, textarea, select {
         border-right-color: #222;
     }
 
-    .story-image-container {
+    .conversation-item:active {
         background: #111;
-        border-color: #222;
     }
 
-    .photo-item {
-        background: #111;
-        border-color: #222;
-    }
-
-    .story-header {
-        background: #111;
-        border-color: #222;
-    }
-
-    .story-name {
+    .conversation-name {
         color: #fff;
     }
+}
 
-    .story-nav-btn {
-        background: #111;
-        border-color: #222;
-        color: #fff;
+/* ====== ACCESSIBILITY ====== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 
-    .story-nav-btn:active {
-        background: #fff;
-        color: #000;
-    }
-
-    .reveal-box {
-        background: #111;
-        border-color: #222;
-    }
-
-    .reveal-box h2 {
-        color: #fff;
+    .logo {
+        animation: none;
     }
 }
