@@ -22,7 +22,6 @@ let todaySchedule = [];
 let revealPhotos = [];
 let currentStoryIndex = 0;
 let currentChatFriendId = null;
-let messagesUnsubscribe = null;
 
 // ====== DOM ======
 const loginScreen = document.getElementById("loginScreen");
@@ -95,11 +94,24 @@ auth.onAuthStateChanged(async (user) => {
         loadConversations();
         setupSettingsUI();
         
+        // Real-time listeners au lieu de setInterval
+        db.collection("users")
+            .doc(currentUser.uid)
+            .collection("invitations")
+            .onSnapshot(() => loadInvitations());
+        
+        db.collection("users")
+            .doc(currentUser.uid)
+            .collection("friends")
+            .onSnapshot(() => loadFriends());
+        
+        db.collection("messages")
+            .where("participants", "array-contains", currentUser.uid)
+            .onSnapshot(() => loadConversations());
+        
+        // Photos/stories chaque 30s (pas besoin real-time)
         setInterval(loadTodayPhotos, 30000);
         setInterval(checkRevealTime, 60000);
-        setInterval(loadInvitations, 60000);
-        setInterval(loadFriends, 60000);
-        setInterval(loadConversations, 30000);
         
         if ("Notification" in window && Notification.permission === "default") {
             Notification.requestPermission();
@@ -108,7 +120,6 @@ auth.onAuthStateChanged(async (user) => {
         currentUser = null;
         mainScreen.classList.remove("active");
         loginScreen.classList.add("active");
-        if (messagesUnsubscribe) messagesUnsubscribe();
     }
 });
 
@@ -140,6 +151,7 @@ function generateUsername(displayName) {
 }
 
 function setupSettingsUI() {
+    const settingsTab = document.getElementById("settingsTab");
     const profileName = document.getElementById("profileName");
     const profileUsername = document.getElementById("profileUsername");
     const profilePhoto = document.getElementById("profilePhoto");
@@ -590,79 +602,63 @@ storySwapBtn.addEventListener("click", () => {
 });
 
 // ====== FRIENDS ======
-// Recherche en temps réel à partir de 3 lettres
-friendSearchInput.addEventListener("input", async (e) => {
-    let searchQuery = e.target.value.trim().toLowerCase();
-    
-    // Si moins de 3 caractères, effacer les résultats
-    if (searchQuery.length < 3) {
-        searchResultBox.innerHTML = '';
+// Recherche en temps réel au fur et à mesure qu'on tape
+friendSearchInput.addEventListener("input", async () => {
+    let searchUsername = friendSearchInput.value.trim().toLowerCase();
+    if (!searchUsername || searchUsername.startsWith("@") && searchUsername.length === 1) {
+        searchResultBox.innerHTML = "";
         return;
     }
     
-    // Retirer le @ si présent
-    if (searchQuery.startsWith("@")) {
-        searchQuery = searchQuery.substring(1);
+    if (searchUsername.startsWith("@")) {
+        searchUsername = searchUsername.substring(1);
     }
     
     try {
-        searchResultBox.innerHTML = '<p class="empty-message">Recherche...</p>';
-        
-        // Chercher par username ET par displayName
-        const usersSnapshot = await db.collection("users").get();
-        const results = [];
-        
-        usersSnapshot.forEach(doc => {
-            const user = doc.data();
-            const userId = doc.id;
-            
-            // Ne pas afficher l'utilisateur actuel
-            if (userId === currentUser.uid) return;
-            
-            // Chercher dans le username et le displayName
-            if (user.username.includes(searchQuery) || user.displayName.toLowerCase().includes(searchQuery)) {
-                results.push({
-                    id: userId,
-                    ...user
-                });
-            }
-        });
+        const usersSnapshot = await db.collection("users")
+            .where("username", "==", searchUsername)
+            .get();
         
         searchResultBox.innerHTML = "";
         
-        if (results.length === 0) {
-            searchResultBox.innerHTML = '<p class="empty-message">Aucun résultat</p>';
+        if (usersSnapshot.empty) {
             return;
         }
         
-        // Afficher max 5 résultats
-        results.slice(0, 5).forEach(user => {
-            const resultDiv = document.createElement("div");
-            resultDiv.className = "search-result";
-            resultDiv.innerHTML = `
-                <img src="${user.photoURL || ''}" alt="${user.displayName}" class="result-avatar">
-                <div class="result-info">
-                    <p class="result-name">${user.displayName}</p>
-                    <p class="result-email">@${user.username}</p>
-                </div>
-                <button class="btn-invite" onclick="sendFriendRequest('${user.id}', '${user.displayName}')">✓ Inviter</button>
-            `;
-            searchResultBox.appendChild(resultDiv);
-        });
+        const userDoc = usersSnapshot.docs[0];
+        const user = userDoc.data();
+        const userId = userDoc.id;
+        
+        if (userId === currentUser.uid) {
+            return;
+        }
+        
+        const resultDiv = document.createElement("div");
+        resultDiv.className = "search-result";
+        resultDiv.innerHTML = `
+            <img src="${user.photoURL || ''}" alt="${user.displayName}" class="result-avatar">
+            <div class="result-info">
+                <p class="result-name">${user.displayName}</p>
+                <p class="result-email">@${user.username}</p>
+            </div>
+            <button class="btn-invite" onclick="sendFriendRequest('${userId}', '${user.displayName}')">✓ Inviter</button>
+        `;
+        
+        searchResultBox.appendChild(resultDiv);
     } catch (error) {
         console.error(error);
-        searchResultBox.innerHTML = '<p class="empty-message">Erreur</p>';
     }
 });
 
-// Bouton de recherche manuel (fallback)
-searchFriendBtn.addEventListener("click", async () => {
-    const event = new Event('input');
+searchFriendBtn.addEventListener("click", () => {
+    const event = new Event("input", { bubbles: true });
     friendSearchInput.dispatchEvent(event);
 });
 
 async function sendFriendRequest(friendId, friendName) {
     try {
+        const friendData = await db.collection("users").doc(friendId).get();
+        
         await db.collection("users")
             .doc(friendId)
             .collection("invitations")
@@ -682,57 +678,55 @@ async function sendFriendRequest(friendId, friendName) {
     }
 }
 
-let invitationsUnsubscribe = null;
-
-// ====== REAL-TIME INVITATIONS ======
-function setupInvitationsListener() {
-    if (invitationsUnsubscribe) invitationsUnsubscribe();
+// ====== INVITATIONS ======
+async function loadInvitations() {
+    if (!currentUser) return;
     
-    invitationsUnsubscribe = db.collection("users")
-        .doc(currentUser.uid)
-        .collection("invitations")
-        .where("status", "==", "pending")
-        .onSnapshot(snapshot => {
-            invitationsList.innerHTML = "";
-            
-            if (snapshot.empty) {
-                invitationsList.innerHTML = '<p class="empty-message">Aucune invitation</p>';
-                return;
-            }
-            
-            snapshot.forEach(doc => {
-                const invitation = doc.data();
-                const inviteItem = document.createElement("div");
-                inviteItem.className = "invite-item";
-                inviteItem.innerHTML = `
-                    <img src="${invitation.fromPhoto || ''}" alt="${invitation.fromName}" class="invite-avatar">
-                    <div class="invite-info">
-                        <p class="invite-name">${invitation.fromName}</p>
-                    </div>
-                    <div class="invite-actions">
-                        <button class="btn-accept" onclick="acceptInvitation('${doc.id}', '${invitation.fromId}', '${invitation.fromName}')">✓</button>
-                        <button class="btn-refuse" onclick="refuseInvitation('${doc.id}')">✕</button>
-                    </div>
-                `;
-                invitationsList.appendChild(inviteItem);
-            });
+    try {
+        const snapshot = await db.collection("users")
+            .doc(currentUser.uid)
+            .collection("invitations")
+            .where("status", "==", "pending")
+            .get();
+        
+        invitationsList.innerHTML = "";
+        
+        if (snapshot.empty) {
+            invitationsList.innerHTML = '<p class="empty-message">Aucune invitation</p>';
+            return;
+        }
+        
+        snapshot.forEach(doc => {
+            const invitation = doc.data();
+            const inviteItem = document.createElement("div");
+            inviteItem.className = "invite-item";
+            inviteItem.innerHTML = `
+                <img src="${invitation.fromPhoto || ''}" alt="${invitation.fromName}" class="invite-avatar">
+                <div class="invite-info">
+                    <p class="invite-name">${invitation.fromName}</p>
+                </div>
+                <div class="invite-actions">
+                    <button class="btn-accept" onclick="acceptInvitation('${doc.id}', '${invitation.fromId}', '${invitation.fromName}')">✓</button>
+                    <button class="btn-refuse" onclick="refuseInvitation('${doc.id}')">✕</button>
+                </div>
+            `;
+            invitationsList.appendChild(inviteItem);
         });
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 async function acceptInvitation(inviteId, friendId, friendName) {
     try {
-        // Désactiver le bouton pendant le traitement
-        event.target.disabled = true;
-        event.target.textContent = "⏳";
-        
         const friendDoc = await db.collection("users").doc(friendId).get();
         const friendData = friendDoc.data();
         const currentUserDoc = await db.collection("users").doc(currentUser.uid).get();
         const currentUserData = currentUserDoc.data();
         
-        // Paralléliser les 3 opérations Firestore
+        // Paralléliser les 3 écritures au lieu de les faire une à une
         await Promise.all([
-            // Ajouter l'ami à MA liste
+            // Ajouter l'ami dans la collection de l'utilisateur actuel
             db.collection("users").doc(currentUser.uid).collection("friends").doc(friendId).set({
                 uid: friendId,
                 displayName: friendData.displayName,
@@ -742,7 +736,7 @@ async function acceptInvitation(inviteId, friendId, friendName) {
                 addedAt: new Date()
             }),
             
-            // Ajouter MOI à la liste de l'ami
+            // Ajouter l'utilisateur actuel dans la collection du friend (amitié bidirectionnelle)
             db.collection("users").doc(friendId).collection("friends").doc(currentUser.uid).set({
                 uid: currentUser.uid,
                 displayName: currentUserData.displayName,
@@ -752,7 +746,7 @@ async function acceptInvitation(inviteId, friendId, friendName) {
                 addedAt: new Date()
             }),
             
-            // Mettre à jour l'invitation
+            // Supprimer l'invitation
             db.collection("users")
                 .doc(currentUser.uid)
                 .collection("invitations")
@@ -764,14 +758,8 @@ async function acceptInvitation(inviteId, friendId, friendName) {
         loadInvitations();
         loadFriends();
         loadConversations();
-        
     } catch (error) {
         console.error(error);
-        alert("❌ Erreur");
-        if (event.target) {
-            event.target.disabled = false;
-            event.target.textContent = "✓";
-        }
     }
 }
 
@@ -816,10 +804,7 @@ async function loadFriends() {
                     <p class="friend-name">${friend.displayName}</p>
                     <p class="friend-email">@${friend.username}</p>
                 </div>
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn-invite" onclick="startConversation('${doc.id}', '${friend.displayName}', '${friend.photoURL}')">💬</button>
-                    <button class="btn-remove" onclick="removeFriend('${doc.id}')">✕</button>
-                </div>
+                <button class="btn-remove" onclick="removeFriend('${doc.id}')">✕</button>
             `;
             friendsList.appendChild(friendItem);
         });
@@ -839,24 +824,12 @@ async function removeFriend(friendId) {
             .delete();
         
         loadFriends();
-        loadConversations();
     } catch (error) {
         console.error(error);
     }
 }
 
 // ====== MESSAGES ======
-function startConversation(friendId, friendName, friendPhoto) {
-    // Naviguer vers l'onglet messages
-    const messagesTab = document.querySelector('[data-tab="messages"]');
-    messagesTab.click();
-    
-    // Ouvrir le chat avec cet ami
-    setTimeout(() => {
-        openChat(friendId, { displayName: friendName, photoURL: friendPhoto });
-    }, 100);
-}
-
 async function loadConversations() {
     if (!currentUser) return;
     
@@ -875,25 +848,22 @@ async function loadConversations() {
         
         for (const friendDoc of friendsSnapshot.docs) {
             const friend = friendDoc.data();
+            const friendId = friendDoc.id;
             
-            let lastMessage = "Pas de messages";
-            
-            // Récupérer la conversation
-            const conversation = await db.collection("messages")
+            const messagesSnapshot = await db.collection("messages")
                 .where("participants", "array-contains", currentUser.uid)
                 .get();
             
-            const chatDoc = conversation.docs.find(doc => {
+            let lastMessage = "Pas de messages";
+            const conversation = messagesSnapshot.docs.find(doc => {
                 const participants = doc.data().participants;
-                return participants.includes(friendDoc.id);
+                return participants.includes(friendId);
             });
             
-            if (chatDoc) {
-                const messages = chatDoc.data().messages || [];
-                if (messages.length > 0) {
-                    const lastMsg = messages[messages.length - 1];
-                    lastMessage = lastMsg.text.substring(0, 30);
-                    if (lastMsg.text.length > 30) lastMessage += "...";
+            if (conversation) {
+                const msgs = conversation.data().messages || [];
+                if (msgs.length > 0) {
+                    lastMessage = msgs[msgs.length - 1].text.substring(0, 30) + "...";
                 }
             }
             
@@ -907,7 +877,7 @@ async function loadConversations() {
                 </div>
             `;
             
-            conversationItem.addEventListener("click", () => openChat(friendDoc.id, friend));
+            conversationItem.addEventListener("click", () => openChat(friendId, friend));
             conversationsList.appendChild(conversationItem);
         }
     } catch (error) {
@@ -927,10 +897,8 @@ async function openChat(friendId, friend) {
 }
 
 async function loadChatMessages(friendId) {
-    if (messagesUnsubscribe) messagesUnsubscribe();
-    
     try {
-        const conversation = await db.collection("messages")
+        let conversation = await db.collection("messages")
             .where("participants", "array-contains", currentUser.uid)
             .get();
         
@@ -942,39 +910,25 @@ async function loadChatMessages(friendId) {
         messagesBox.innerHTML = "";
         
         if (chatDoc) {
-            messagesUnsubscribe = db.collection("messages").doc(chatDoc.id)
-                .onSnapshot(snapshot => {
-                    const messages = snapshot.data().messages || [];
-                    messagesBox.innerHTML = "";
-                    
-                    messages.forEach(msg => {
-                        const msgDiv = document.createElement("div");
-                        msgDiv.className = `message ${msg.senderId === currentUser.uid ? 'own' : ''}`;
-                        const msgTime = new Date(msg.timestamp.seconds * 1000).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                        msgDiv.innerHTML = `
-                            <div class="message-bubble">${msg.text}</div>
-                            <div class="message-time">${msgTime}</div>
-                        `;
-                        messagesBox.appendChild(msgDiv);
-                    });
-                    
-                    messagesBox.scrollTop = messagesBox.scrollHeight;
-                });
+            const messages = chatDoc.data().messages || [];
+            messages.forEach(msg => {
+                const msgDiv = document.createElement("div");
+                msgDiv.className = `message ${msg.senderId === currentUser.uid ? 'own' : ''}`;
+                msgDiv.innerHTML = `
+                    <div class="message-bubble">${msg.text}</div>
+                    <div class="message-time">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+                `;
+                messagesBox.appendChild(msgDiv);
+            });
+            
+            messagesBox.scrollTop = messagesBox.scrollHeight;
         }
     } catch (error) {
         console.error(error);
     }
 }
 
-sendMessageBtn.addEventListener("click", sendMessage);
-messageInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-        e.preventDefault();
-        sendMessage();
-    }
-});
-
-async function sendMessage() {
+sendMessageBtn.addEventListener("click", async () => {
     const text = messageInput.value.trim();
     if (!text) return;
     
@@ -1008,15 +962,15 @@ async function sendMessage() {
         }
         
         messageInput.value = "";
+        loadChatMessages(currentChatFriendId);
     } catch (error) {
         console.error(error);
     }
-}
+});
 
 document.querySelector(".btn-back").addEventListener("click", () => {
     chatView.style.display = "none";
     document.querySelector(".conversations-list").style.display = "block";
-    if (messagesUnsubscribe) messagesUnsubscribe();
 });
 
 // ====== NAV ======
