@@ -12,25 +12,20 @@ html, body {
     overflow-x: hidden;
 }
 
-html {
-    font-size: 16px;
-}
-
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-    background: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #fff;
     color: #1a1a1a;
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
-    overflow-y: auto;
 }
 
-input, textarea, select {
+input, textarea {
     -webkit-user-select: text;
     user-select: text;
 }
 
-/* ====== SCREENS ====== */
+/* SCREENS */
 .screen {
     display: none;
     width: 100%;
@@ -41,7 +36,7 @@ input, textarea, select {
     display: block;
 }
 
-/* ====== LOGIN ====== */
+/* LOGIN */
 .login-container {
     display: flex;
     flex-direction: column;
@@ -55,47 +50,36 @@ input, textarea, select {
 .logo {
     font-size: 80px;
     margin-bottom: 20px;
-    animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
 }
 
 .login-container h1 {
     font-size: 32px;
     font-weight: 700;
     margin-bottom: 12px;
-    color: #000;
 }
 
 .login-container p {
     color: #666;
     margin-bottom: 40px;
     font-size: 15px;
-    line-height: 1.5;
 }
 
-/* ====== BUTTONS ====== */
+/* BUTTONS */
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #000;
     color: #fff;
     border: none;
-    padding: 14px 30px;
+    padding: 12px 24px;
     border-radius: 10px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
     width: 100%;
     max-width: 400px;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .btn-primary:active {
-    transform: scale(0.98);
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    background: #333;
 }
 
 .btn-logout {
@@ -107,7 +91,6 @@ input, textarea, select {
     cursor: pointer;
     font-size: 12px;
     font-weight: 500;
-    transition: all 0.2s;
 }
 
 .btn-logout:active {
@@ -121,98 +104,17 @@ input, textarea, select {
     width: 70px;
     height: 70px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: #000;
+    color: #fff;
     border: none;
     font-size: 32px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 1000;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .btn-camera:active {
-    transform: scale(0.95);
-}
-
-.btn-accept {
-    background: #48bb78;
-    color: white;
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-accept:active {
-    background: #38a169;
-    transform: scale(0.95);
-}
-
-.btn-refuse {
-    background: #f56565;
-    color: white;
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-refuse:active {
-    background: #e53e3e;
-    transform: scale(0.95);
-}
-
-.btn-remove {
-    background: transparent;
-    border: 1px solid #e5e5e5;
-    color: #000;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.btn-remove:active {
-    background: #f5f5f5;
-}
-
-.btn-invite {
-    background: #48bb78;
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.2s;
-    min-width: 80px;
-}
-
-.btn-invite:active {
-    background: #38a169;
-    transform: scale(0.95);
+    background: #333;
 }
 
 .btn-danger {
@@ -222,51 +124,104 @@ input, textarea, select {
     padding: 12px 24px;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
     font-weight: 600;
-    transition: all 0.2s;
     width: 100%;
 }
 
 .btn-danger:active {
     background: #e53e3e;
-    transform: scale(0.98);
 }
 
 .btn-send {
     background: #000;
-    color: white;
+    color: #fff;
     border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
+    padding: 10px 16px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 14px;
-    transition: all 0.2s;
 }
 
 .btn-send:active {
     background: #333;
-    transform: scale(0.95);
 }
 
 .btn-back {
-    background: none;
+    background: transparent;
     border: none;
-    font-size: 24px;
     cursor: pointer;
-    padding: 8px;
+    font-size: 16px;
+    font-weight: 600;
     color: #000;
-    transition: all 0.2s;
 }
 
-.btn-back:active {
-    transform: scale(0.9);
+.btn-invite {
+    background: #22863a;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
 }
 
-/* ====== MAIN SCREEN ====== */
-#mainScreen {
+.btn-invite:active {
+    background: #1a6428;
+}
+
+.btn-accept {
+    background: #22863a;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.btn-accept:active {
+    background: #1a6428;
+}
+
+.btn-refuse {
+    background: #dc3545;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.btn-refuse:active {
+    background: #c82333;
+}
+
+.btn-remove {
+    background: transparent;
+    color: #000;
+    border: 1px solid #e5e5e5;
+    width: 36px;
+    height: 36px;
     padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* MAIN */
+#mainScreen {
     padding-bottom: 100px;
 }
 
@@ -277,9 +232,6 @@ input, textarea, select {
     padding: 16px 20px;
     border-bottom: 1px solid #e5e5e5;
     background: #fff;
-    position: sticky;
-    top: 0;
-    z-index: 100;
 }
 
 .user-info {
@@ -293,60 +245,51 @@ input, textarea, select {
     height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #667eea;
+    border: 1px solid #e5e5e5;
 }
 
 .user-name {
     font-weight: 600;
     font-size: 15px;
-    color: #000;
 }
 
 .user-date {
     font-size: 12px;
-    color: #999;
+    color: #666;
     margin-top: 2px;
 }
 
-/* ====== TABS ====== */
+/* TABS */
 .tab {
     display: none;
-    animation: fadeIn 0.3s ease;
 }
 
 .tab.active {
     display: block;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* ====== HOME TAB ====== */
+/* STATUS BOX */
 .status-box {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 20px;
+    background: #f5f5f5;
+    padding: 16px;
     margin: 16px;
     border-radius: 12px;
     text-align: center;
-    border: none;
-    color: white;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    border: 1px solid #e5e5e5;
 }
 
 .status-text {
-    font-size: 18px;
-    font-weight: 700;
-    color: white;
+    font-size: 16px;
+    font-weight: 600;
     margin-bottom: 8px;
 }
 
 .next-reminder {
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.9);
+    color: #666;
 }
 
+/* PHOTOS */
 .photos-section {
     padding: 16px;
 }
@@ -354,7 +297,6 @@ input, textarea, select {
 .photos-section h2 {
     font-size: 17px;
     font-weight: 600;
-    color: #000;
     margin-bottom: 12px;
 }
 
@@ -366,17 +308,11 @@ input, textarea, select {
 
 .photo-item {
     position: relative;
-    border-radius: 12px;
+    border-radius: 10px;
     overflow: hidden;
     aspect-ratio: 1;
     border: 1px solid #e5e5e5;
     background: #f5f5f5;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.photo-item:active {
-    transform: scale(0.95);
 }
 
 .photo-item img {
@@ -390,22 +326,21 @@ input, textarea, select {
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0,0,0,0.8);
     color: white;
-    padding: 6px;
-    font-size: 11px;
+    padding: 5px;
+    font-size: 10px;
     text-align: center;
-    font-weight: 600;
 }
 
 .empty-message {
     text-align: center;
-    color: #999;
+    color: #666;
     padding: 40px 20px;
-    font-size: 14px;
+    font-size: 13px;
 }
 
-/* ====== STORIES TAB ====== */
+/* STORIES */
 .stories-container {
     padding: 16px;
 }
@@ -416,9 +351,8 @@ input, textarea, select {
     align-items: center;
     margin-bottom: 16px;
     padding: 12px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #fff 100%);
+    background: #f5f5f5;
     border-radius: 12px;
-    border: 1px solid #e5e5e5;
 }
 
 .story-avatar {
@@ -426,7 +360,7 @@ input, textarea, select {
     height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid #667eea;
+    border: 2px solid #000;
 }
 
 .story-user-info {
@@ -435,13 +369,12 @@ input, textarea, select {
 
 .story-name {
     font-weight: 600;
-    font-size: 15px;
-    color: #000;
+    font-size: 14px;
 }
 
 .story-counter {
     font-size: 12px;
-    color: #999;
+    color: #666;
     margin-top: 3px;
 }
 
@@ -450,18 +383,16 @@ input, textarea, select {
     width: 100%;
     aspect-ratio: 9/16;
     margin-bottom: 16px;
-    border-radius: 16px;
+    border-radius: 12px;
     overflow: hidden;
     border: 1px solid #e5e5e5;
-    background: linear-gradient(135deg, #f5f5f5 0%, #e5e5e5 100%);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: #f5f5f5;
 }
 
 .story-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
 }
 
 .story-swap-btn {
@@ -470,20 +401,12 @@ input, textarea, select {
     right: 10px;
     width: 48px;
     height: 48px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.95);
     border: none;
     font-size: 24px;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.story-swap-btn:active {
-    transform: scale(0.9);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .story-navigation {
@@ -500,60 +423,41 @@ input, textarea, select {
     cursor: pointer;
     font-weight: 600;
     font-size: 14px;
-    color: #000;
-    transition: all 0.2s;
 }
 
 .story-nav-btn:active {
-    background: #667eea;
+    background: #000;
     color: white;
-    border-color: #667eea;
 }
 
 .reveal-box {
-    padding: 24px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 16px;
-    border: none;
+    padding: 16px;
+    background: #f5f5f5;
+    border-radius: 12px;
+    border: 1px solid #e5e5e5;
     text-align: center;
     margin: 16px;
-    color: white;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-.reveal-box h2 {
-    font-size: 20px;
-    color: white;
-    margin-bottom: 8px;
-}
-
-.reveal-box p {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.9);
-}
-
-/* ====== MESSAGES TAB ====== */
+/* MESSAGES */
 .messages-container {
     display: flex;
-    height: 100%;
-    min-height: calc(100vh - 100px);
+    height: calc(100vh - 150px);
 }
 
 .conversations-list {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
+    flex: 1;
+    overflow-y: auto;
+    border-right: 1px solid #e5e5e5;
 }
 
 .conversation-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
     padding: 12px 16px;
     border-bottom: 1px solid #e5e5e5;
     cursor: pointer;
-    transition: background 0.2s;
+    display: flex;
+    gap: 12px;
+    align-items: center;
 }
 
 .conversation-item:active {
@@ -561,11 +465,10 @@ input, textarea, select {
 }
 
 .conversation-avatar {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     object-fit: cover;
-    border: 1px solid #e5e5e5;
 }
 
 .conversation-info {
@@ -576,67 +479,35 @@ input, textarea, select {
 .conversation-name {
     font-weight: 600;
     font-size: 14px;
-    color: #000;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
 }
 
 .conversation-preview {
     font-size: 12px;
-    color: #bbb;
+    color: #666;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.conversation-preview-empty {
-    font-size: 12px;
-    color: #ddd;
-    font-style: italic;
-}
-
-.conversation-start-btn {
-    background: #667eea;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    transition: all 0.2s;
-    margin-left: auto;
-}
-
-.conversation-start-btn:active {
-    background: #764ba2;
-    transform: scale(0.95);
-}
-
-/* CHAT VIEW */
 .chat-view {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: white;
-    z-index: 100;
+    flex: 1;
     display: flex;
     flex-direction: column;
+    background: #fff;
 }
 
 .chat-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e5e5;
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 16px;
-    border-bottom: 1px solid #e5e5e5;
-    background: white;
 }
 
 .chat-friend-info {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
     flex: 1;
 }
@@ -646,13 +517,11 @@ input, textarea, select {
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
-    border: 1px solid #e5e5e5;
 }
 
 .chat-friend-name {
     font-weight: 600;
     font-size: 14px;
-    color: #000;
 }
 
 .messages-box {
@@ -661,11 +530,12 @@ input, textarea, select {
     padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
 }
 
 .message {
     display: flex;
+    gap: 8px;
     margin-bottom: 8px;
 }
 
@@ -674,54 +544,42 @@ input, textarea, select {
 }
 
 .message-bubble {
-    max-width: 80%;
+    max-width: 70%;
     padding: 10px 14px;
-    border-radius: 18px;
-    word-wrap: break-word;
+    border-radius: 10px;
+    background: #f5f5f5;
     font-size: 14px;
+    word-wrap: break-word;
 }
 
 .message.own .message-bubble {
     background: #000;
-    color: white;
-}
-
-.message:not(.own) .message-bubble {
-    background: #f5f5f5;
-    color: #000;
+    color: #fff;
 }
 
 .message-time {
     font-size: 11px;
-    color: #bbb;
+    color: #999;
+    align-self: flex-end;
     margin-top: 4px;
-    padding: 0 12px;
-    font-weight: 500;
 }
 
 .message-input-container {
-    display: flex;
-    gap: 8px;
     padding: 12px 16px;
     border-top: 1px solid #e5e5e5;
-    background: white;
+    display: flex;
+    gap: 8px;
 }
 
 .message-input {
     flex: 1;
-    padding: 12px;
+    padding: 10px 12px;
     border: 1px solid #e5e5e5;
-    border-radius: 20px;
+    border-radius: 8px;
     font-size: 14px;
-    background: white;
-    color: #000;
 }
 
-.message-input::placeholder {
-    color: #999;
-}
-
-/* ====== FRIENDS TAB ====== */
+/* FRIENDS */
 .search-section {
     padding: 16px;
     background: #f5f5f5;
@@ -732,7 +590,6 @@ input, textarea, select {
 
 .search-section h2 {
     font-size: 16px;
-    color: #000;
     margin-bottom: 12px;
     font-weight: 600;
 }
@@ -743,47 +600,13 @@ input, textarea, select {
     margin-bottom: 12px;
 }
 
-/* Boutons dans la section message/chat */
-.friend-item .btn-invite {
-    background: #667eea;
-    color: white;
-    border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    padding: 0;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.friend-item .btn-invite:active {
-    background: #764ba2;
-    transform: scale(0.95);
-}
-
 .email-input {
     flex: 1;
-    padding: 12px;
+    padding: 10px;
     border: 1px solid #e5e5e5;
     border-radius: 8px;
     font-size: 14px;
     background: white;
-    color: #000;
-    transition: all 0.2s;
-}
-
-.email-input:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.email-input::placeholder {
-    color: #999;
 }
 
 .search-result-box {
@@ -798,7 +621,6 @@ input, textarea, select {
     background: white;
     border: 1px solid #e5e5e5;
     border-radius: 10px;
-    margin-bottom: 8px;
 }
 
 .result-avatar {
@@ -806,7 +628,6 @@ input, textarea, select {
     height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #667eea;
 }
 
 .result-info {
@@ -815,24 +636,21 @@ input, textarea, select {
 
 .result-name {
     font-weight: 600;
-    font-size: 15px;
-    color: #000;
+    font-size: 14px;
     margin-bottom: 3px;
 }
 
 .result-email {
     font-size: 12px;
-    color: #999;
+    color: #666;
 }
 
-/* ====== INVITATIONS ====== */
 .invitations-section {
     margin: 16px;
 }
 
 .invitations-section h2 {
     font-size: 16px;
-    color: #000;
     margin-bottom: 12px;
     font-weight: 600;
 }
@@ -858,7 +676,6 @@ input, textarea, select {
     height: 44px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #667eea;
 }
 
 .invite-info {
@@ -867,14 +684,13 @@ input, textarea, select {
 
 .invite-name {
     font-weight: 600;
-    font-size: 14px;
-    color: #000;
+    font-size: 13px;
     margin-bottom: 2px;
 }
 
 .invite-email {
     font-size: 11px;
-    color: #999;
+    color: #666;
 }
 
 .invite-actions {
@@ -882,14 +698,12 @@ input, textarea, select {
     gap: 6px;
 }
 
-/* ====== FRIENDS ====== */
 .friends-section {
     margin: 16px;
 }
 
 .friends-section h2 {
     font-size: 16px;
-    color: #000;
     margin-bottom: 12px;
     font-weight: 600;
 }
@@ -908,11 +722,6 @@ input, textarea, select {
     background: #f5f5f5;
     border-radius: 10px;
     border: 1px solid #e5e5e5;
-    transition: all 0.2s;
-}
-
-.friend-item:active {
-    background: #f0f0f0;
 }
 
 .friend-avatar {
@@ -920,7 +729,6 @@ input, textarea, select {
     height: 44px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #667eea;
 }
 
 .friend-info {
@@ -929,38 +737,36 @@ input, textarea, select {
 
 .friend-name {
     font-weight: 600;
-    font-size: 14px;
-    color: #000;
+    font-size: 13px;
     margin-bottom: 2px;
 }
 
 .friend-email {
     font-size: 11px;
-    color: #999;
+    color: #666;
 }
 
-/* ====== SETTINGS TAB ====== */
+/* SETTINGS */
 .settings-container {
     padding: 16px;
 }
 
 .profile-header {
     display: flex;
-    gap: 16px;
+    gap: 12px;
     align-items: center;
     margin-bottom: 24px;
     padding: 16px;
     background: #f5f5f5;
     border-radius: 12px;
-    border: 1px solid #e5e5e5;
 }
 
 .profile-avatar {
-    width: 64px;
-    height: 64px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #667eea;
+    border: 2px solid #000;
 }
 
 .profile-info {
@@ -970,13 +776,12 @@ input, textarea, select {
 .profile-name {
     font-weight: 600;
     font-size: 16px;
-    color: #000;
     margin-bottom: 4px;
 }
 
 .profile-username {
-    font-size: 12px;
-    color: #999;
+    font-size: 13px;
+    color: #666;
 }
 
 .settings-section {
@@ -984,9 +789,8 @@ input, textarea, select {
 }
 
 .settings-section h3 {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
-    color: #000;
     margin-bottom: 12px;
 }
 
@@ -996,10 +800,10 @@ input, textarea, select {
 
 .setting-field label {
     display: block;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
-    color: #000;
     margin-bottom: 8px;
+    color: #000;
 }
 
 .input-field {
@@ -1008,42 +812,28 @@ input, textarea, select {
     border: 1px solid #e5e5e5;
     border-radius: 8px;
     font-size: 14px;
-    background: white;
-    color: #000;
-    font-family: inherit;
-    transition: all 0.2s;
-}
-
-.input-field:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.input-field::placeholder {
-    color: #999;
+    background: #fff;
 }
 
 .username-input {
     display: flex;
     align-items: center;
-    gap: 0;
     border: 1px solid #e5e5e5;
     border-radius: 8px;
-    overflow: hidden;
+    background: #fff;
 }
 
 .username-input span {
-    padding: 12px;
-    background: #f5f5f5;
-    color: #999;
+    padding-left: 12px;
     font-weight: 600;
-    border-right: 1px solid #e5e5e5;
+    color: #666;
 }
 
-.username-input .input-field {
-    border: none;
+.username-input input {
     flex: 1;
+    border: none;
+    padding: 12px;
+    font-size: 14px;
 }
 
 .help-text {
@@ -1052,7 +842,7 @@ input, textarea, select {
     margin-top: 4px;
 }
 
-/* ====== NAVBAR ====== */
+/* NAVBAR */
 .navbar {
     position: fixed;
     bottom: 0;
@@ -1064,7 +854,6 @@ input, textarea, select {
     border-top: 1px solid #e5e5e5;
     padding: 8px 0 16px;
     z-index: 999;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .nav-btn {
@@ -1076,317 +865,30 @@ input, textarea, select {
     border: none;
     cursor: pointer;
     color: #999;
-    padding: 8px;
-    font-size: 12px;
-    font-weight: 500;
-    transition: all 0.2s;
-    flex: 1;
+    transition: color 0.2s;
 }
 
 .nav-btn.active {
-    color: #667eea;
+    color: #000;
 }
 
 .nav-icon {
     font-size: 24px;
-    transition: transform 0.2s;
-}
-
-.nav-btn.active .nav-icon {
-    transform: scale(1.1);
 }
 
 .nav-label {
     font-size: 10px;
+    font-weight: 500;
 }
 
-/* ====== RESPONSIVE ====== */
 @media (max-width: 480px) {
-    html {
-        font-size: 14px;
-    }
-
-    .logo {
-        font-size: 60px;
-    }
-
-    .login-container h1 {
-        font-size: 26px;
-    }
-
-    .story-image-container {
-        aspect-ratio: 3/4;
-    }
-
-    .story-swap-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 20px;
-    }
-
-    .search-box {
+    .messages-container {
         flex-direction: column;
     }
 
-    .search-box .btn-primary {
-        width: 100%;
-    }
-
-    .photos-grid {
-        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-        gap: 8px;
-    }
-
-    .btn-camera {
-        width: 60px;
-        height: 60px;
-        font-size: 28px;
-        bottom: 80px;
-        right: 16px;
-    }
-
-    .header {
-        padding: 12px 16px;
-    }
-
-    .user-avatar {
-        width: 44px;
-        height: 44px;
-    }
-}
-
-@media (max-width: 360px) {
-    .photos-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .btn-camera {
-        width: 56px;
-        height: 56px;
-        font-size: 24px;
-    }
-
-    .search-box {
-        flex-direction: column;
-    }
-
-    .story-nav-btn {
-        font-size: 12px;
-        padding: 10px;
-    }
-}
-
-/* ====== DARK MODE ====== */
-@media (prefers-color-scheme: dark) {
-    body {
-        background: #000;
-        color: #fff;
-    }
-
-    .login-container h1 {
-        color: #fff;
-    }
-
-    .header {
-        background: #111;
-        border-bottom-color: #222;
-    }
-
-    .user-name {
-        color: #fff;
-    }
-
-    .user-avatar {
-        border-color: #667eea;
-    }
-
-    .status-box {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    .status-text {
-        color: #fff;
-    }
-
-    .photos-section h2 {
-        color: #fff;
-    }
-
-    .photo-item {
-        background: #111;
-        border-color: #222;
-    }
-
-    .search-section {
-        background: #111;
-        border-color: #222;
-    }
-
-    .search-section h2 {
-        color: #fff;
-    }
-
-    .email-input {
-        background: #1a1a1a;
-        border-color: #222;
-        color: #fff;
-    }
-
-    .email-input:focus {
-        border-color: #667eea;
-    }
-
-    .search-result {
-        background: #111;
-        border-color: #222;
-    }
-
-    .result-name {
-        color: #fff;
-    }
-
-    .invitations-section h2,
-    .friends-section h2 {
-        color: #fff;
-    }
-
-    .invite-item,
-    .friend-item {
-        background: #111;
-        border-color: #222;
-    }
-
-    .invite-name,
-    .friend-name {
-        color: #fff;
-    }
-
-    .navbar {
-        background: #000;
-        border-top-color: #222;
-    }
-
-    .story-header {
-        background: #111;
-        border-color: #222;
-    }
-
-    .story-name {
-        color: #fff;
-    }
-
-    .story-nav-btn {
-        background: #111;
-        border-color: #222;
-        color: #fff;
-    }
-
-    .story-nav-btn:active {
-        background: #667eea;
-        border-color: #667eea;
-    }
-
-    .reveal-box {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    .story-image-container {
-        background: #111;
-        border-color: #222;
-    }
-
-    .chat-view {
-        background: #000;
-    }
-
-    .chat-header {
-        background: #111;
-        border-bottom-color: #222;
-    }
-
-    .btn-back {
-        color: #fff;
-    }
-
-    .chat-friend-name {
-        color: #fff;
-    }
-
-    .messages-box {
-        background: #000;
-    }
-
-    .message:not(.own) .message-bubble {
-        background: #111;
-        color: #fff;
-    }
-
-    .message-input-container {
-        background: #000;
-        border-top-color: #222;
-    }
-
-    .message-input {
-        background: #111;
-        border-color: #222;
-        color: #fff;
-    }
-
-    .profile-header {
-        background: #111;
-        border-color: #222;
-    }
-
-    .profile-name {
-        color: #fff;
-    }
-
-    .settings-section h3 {
-        color: #fff;
-    }
-
-    .input-field {
-        background: #1a1a1a;
-        border-color: #222;
-        color: #fff;
-    }
-
-    .username-input span {
-        background: #111;
-        border-right-color: #222;
-    }
-
-    .conversation-item:active {
-        background: #111;
-    }
-
-    .conversation-name {
-        color: #fff;
-    }
-
-    .conversation-preview {
-        color: #888;
-    }
-
-    .conversation-start-btn {
-        background: #667eea;
-        color: white;
-    }
-
-    .conversation-start-btn:active {
-        background: #764ba2;
-    }
-}
-
-/* ====== ACCESSIBILITY ====== */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-
-    .logo {
-        animation: none;
+    .conversations-list {
+        border-right: none;
+        border-bottom: 1px solid #e5e5e5;
+        max-height: 200px;
     }
 }
